@@ -2,6 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import SmoothButton from "@/components/ui/smoothui/smooth-button";
 
 function makeId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -99,12 +100,13 @@ export function LogForm({ studentId }: { studentId: string }) {
       </label>
       {status === "error" && <p role="alert" className="text-base text-red-700">{error}</p>}
       {status === "saved" && <p role="status" className="text-base text-green-700">Saved.</p>}
-      <button
+      <SmoothButton
         disabled={status === "saving"}
-        className="h-12 w-full rounded bg-teal-700 text-base font-medium text-white disabled:opacity-60"
+        loading={status === "saving"}
+        className="h-12 w-full rounded bg-teal-700 hover:bg-teal-800 text-base font-medium text-white disabled:opacity-60"
       >
-        {status === "saving" ? "Saving..." : "Save conversation"}
-      </button>
+        Save conversation
+      </SmoothButton>
     </form>
   );
 }
