@@ -23,7 +23,6 @@ import {
   X,
   Upload,
   AlertTriangle,
-  FileText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -82,10 +81,8 @@ export function DepartmentDashboardClient({
   faculty: FacultyMember[];
   students: DepartmentStudent[];
 }) {
-  // Navigation tabs
   const [activeTab, setActiveTab] = useState<"overview" | "faculty" | "students" | "import">("overview");
 
-  // Overview metrics state
   const [expandedCard, setExpandedCard] = useState<"students" | "faculty" | "meetings" | "followups" | null>("students");
   const [showThresholdSettings, setShowThresholdSettings] = useState(false);
   const [thresholds, setThresholds] = useState({
@@ -105,7 +102,6 @@ export function DepartmentDashboardClient({
   const [thresholdSuccess, setThresholdSuccess] = useState(false);
   const [isSavingThresholds, setIsSavingThresholds] = useState(false);
 
-  // Faculty management state
   const [facultySearch, setFacultySearch] = useState("");
   const [showAddFacultyModal, setShowAddFacultyModal] = useState(false);
   const [newFaculty, setNewFaculty] = useState({ name: "", mobile: "", email: "" });
@@ -113,16 +109,13 @@ export function DepartmentDashboardClient({
   const [addFacultySuccess, setAddFacultySuccess] = useState(false);
   const [isAddingFaculty, setIsAddingFaculty] = useState(false);
 
-  // Faculty assignment modal state
   const [selectedFacultyForAssignment, setSelectedFacultyForAssignment] = useState<FacultyMember | null>(null);
 
-  // Student directory & filtering state
   const [studentSearch, setStudentSearch] = useState("");
   const [studentFilter, setStudentFilter] = useState<"all" | "reached" | "unreached" | "unassigned">("all");
   const [selectedFacultyFilter, setSelectedFacultyFilter] = useState<string>("all");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
-  // CSV Import state
   const [importType, setImportType] = useState<"students" | "faculty">("students");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvPreviewRows, setCsvPreviewRows] = useState<Record<string, string>[]>([]);
@@ -137,7 +130,6 @@ export function DepartmentDashboardClient({
   const unreached = c.totalStudents - c.studentsReached;
   const unassignedCount = students.filter((s) => !s.mentorId).length;
 
-  // Threshold save handler
   const handleSaveThresholds = (e: React.FormEvent) => {
     e.preventDefault();
     setThresholdError(null);
@@ -196,7 +188,6 @@ export function DepartmentDashboardClient({
     }, 600);
   };
 
-  // Add Faculty handler (UI preview / validation)
   const handleAddFaculty = (e: React.FormEvent) => {
     e.preventDefault();
     setAddFacultyError(null);
@@ -219,7 +210,6 @@ export function DepartmentDashboardClient({
     }, 700);
   };
 
-  // CSV Export handlers
   const handleExportSummaryCsv = () => {
     const csvContent = [
       "Metric,Value,Description",
@@ -266,7 +256,6 @@ export function DepartmentDashboardClient({
     }, 1000);
   };
 
-  // CSV File Upload Parser
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -310,7 +299,6 @@ export function DepartmentDashboardClient({
     reader.readAsText(file);
   };
 
-  // Filtered lists
   const filteredFaculty = faculty.filter(
     (f) =>
       f.name.toLowerCase().includes(facultySearch.toLowerCase()) ||
@@ -333,31 +321,31 @@ export function DepartmentDashboardClient({
   });
 
   return (
-    <div className="min-h-screen pb-20 bg-[#edf2f7] transition-colors duration-200">
+    <div className="min-h-screen pb-20 bg-[#F6F8F6] text-[#242924] transition-colors duration-200">
       {/* Header */}
-      <header className="sticky top-0 z-25 bg-[#edf2f7]/90 backdrop-blur-md border-b border-slate-300/60 shadow-[0_4px_12px_rgba(163,177,198,0.25)] transition-all">
+      <header className="sticky top-0 z-25 bg-[#F6F8F6]/95 backdrop-blur-md border-b border-[#DCE4DD] shadow-[0_4px_12px_rgba(0,0,0,0.03)] transition-all">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-8 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-700 text-white font-bold shadow-md shadow-teal-700/20">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#527A5B] text-[#FFFFFF] font-extrabold shadow-md">
               <Building2 className="h-6 w-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Department Overview</h1>
-                <Badge variant="secondary" className="bg-teal-100 text-teal-900 border-teal-300 font-bold text-xs">
+                <h1 className="text-lg sm:text-xl font-extrabold text-[#242924] tracking-tight">Department Overview</h1>
+                <Badge variant="secondary" className="bg-[#EEF2EF] text-[#527A5B] border-[#DCE4DD] font-bold text-xs">
                   HOD Portal
                 </Badge>
               </div>
-              <p className="text-xs text-slate-600 font-semibold">{user.name} · Confidential Aggregate Analytics</p>
+              <p className="text-xs text-[#5F6962] font-semibold">{user.name} · Confidential Aggregate Analytics</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleExportSummaryCsv}
-              className="px-3.5 py-2 rounded-xl bg-[#f0f4f8] text-teal-900 font-bold text-xs neumo-card hover:shadow-[4px_4px_10px_rgba(163,177,198,0.5)] transition-all flex items-center gap-1.5 active:scale-95"
+              className="px-3.5 py-2 rounded-xl bg-[#FFFFFF] text-[#527A5B] font-bold text-xs neumo-card hover:border-[#527A5B] transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
               aria-label="Export department summary CSV"
             >
-              <Download className="h-4 w-4 text-teal-700" />
+              <Download className="h-4 w-4 text-[#527A5B]" />
               <span>Export Summary</span>
             </button>
             <LogoutButton />
@@ -366,14 +354,14 @@ export function DepartmentDashboardClient({
       </header>
 
       {/* Navigation Sub-Header Tabs */}
-      <div className="bg-[#e6edf4] border-b border-slate-300/60 shadow-[inset_0_2px_4px_rgba(163,177,198,0.15)]">
+      <div className="bg-[#EEF2EF] border-b border-[#DCE4DD] shadow-inner">
         <div className="mx-auto flex max-w-6xl px-4 sm:px-8 gap-2 overflow-x-auto py-2.5">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === "overview"
-                ? "bg-teal-700 text-white shadow-md shadow-teal-700/20 scale-[1.02]"
-                : "text-slate-700 hover:text-slate-900 bg-[#f0f4f8] neumo-card"
+                ? "bg-[#527A5B] text-[#FFFFFF] shadow-md scale-[1.02]"
+                : "text-[#5F6962] hover:text-[#242924] bg-[#FFFFFF] neumo-card"
             }`}
           >
             <BarChart3 className="h-4 w-4" />
@@ -381,10 +369,10 @@ export function DepartmentDashboardClient({
           </button>
           <button
             onClick={() => setActiveTab("faculty")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === "faculty"
-                ? "bg-teal-700 text-white shadow-md shadow-teal-700/20 scale-[1.02]"
-                : "text-slate-700 hover:text-slate-900 bg-[#f0f4f8] neumo-card"
+                ? "bg-[#527A5B] text-[#FFFFFF] shadow-md scale-[1.02]"
+                : "text-[#5F6962] hover:text-[#242924] bg-[#FFFFFF] neumo-card"
             }`}
           >
             <Users className="h-4 w-4" />
@@ -392,10 +380,10 @@ export function DepartmentDashboardClient({
           </button>
           <button
             onClick={() => setActiveTab("students")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === "students"
-                ? "bg-teal-700 text-white shadow-md shadow-teal-700/20 scale-[1.02]"
-                : "text-slate-700 hover:text-slate-900 bg-[#f0f4f8] neumo-card"
+                ? "bg-[#527A5B] text-[#FFFFFF] shadow-md scale-[1.02]"
+                : "text-[#5F6962] hover:text-[#242924] bg-[#FFFFFF] neumo-card"
             }`}
           >
             <UserCheck className="h-4 w-4" />
@@ -403,10 +391,10 @@ export function DepartmentDashboardClient({
           </button>
           <button
             onClick={() => setActiveTab("import")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
               activeTab === "import"
-                ? "bg-teal-700 text-white shadow-md shadow-teal-700/20 scale-[1.02]"
-                : "text-slate-700 hover:text-slate-900 bg-[#f0f4f8] neumo-card"
+                ? "bg-[#527A5B] text-[#FFFFFF] shadow-md scale-[1.02]"
+                : "text-[#5F6962] hover:text-[#242924] bg-[#FFFFFF] neumo-card"
             }`}
           >
             <FileSpreadsheet className="h-4 w-4" />
@@ -420,18 +408,18 @@ export function DepartmentDashboardClient({
         {activeTab === "overview" && (
           <div className="space-y-6 animate-fadeIn">
             {/* Banner with period and privacy note */}
-            <div className="neumo-card p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-teal-300 bg-gradient-to-br from-[#f0f4f8] via-teal-50/30 to-[#f0f4f8]">
+            <div className="neumo-card p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-[#527A5B]/30 bg-gradient-to-br from-[#FFFFFF] via-[#E5F3E8]/50 to-[#FFFFFF]">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-teal-700" />
-                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900">Faculty Mentoring Coverage</h2>
+                  <ShieldCheck className="h-5 w-5 text-[#527A5B]" />
+                  <h2 className="text-lg sm:text-xl font-extrabold text-[#242924]">Faculty Mentoring Coverage</h2>
                 </div>
-                <p className="text-sm text-slate-700 font-medium leading-relaxed">
-                  Reporting over the last <span className="font-bold text-slate-900">{c.periodDays} days</span>. Counts and departmental analytics only; individual student notes remain strictly confidential.
+                <p className="text-sm text-[#5F6962] font-medium leading-relaxed">
+                  Reporting over the last <span className="font-bold text-[#242924]">{c.periodDays} days</span>. Counts and departmental analytics only; individual student notes remain strictly confidential.
                 </p>
               </div>
-              <Badge variant="secondary" className="self-start sm:self-auto gap-1.5 bg-teal-100 border-teal-300 px-4 py-2.5 text-teal-900 font-bold text-sm shadow-xs shrink-0">
-                <BarChart3 className="h-4 w-4 text-teal-700" />
+              <Badge variant="secondary" className="self-start sm:self-auto gap-1.5 bg-[#EEF2EF] border-[#527A5B]/30 px-4 py-2.5 text-[#527A5B] font-bold text-sm shadow-xs shrink-0">
+                <BarChart3 className="h-4 w-4 text-[#527A5B]" />
                 {coveragePercent}% Student Coverage Rate
               </Badge>
             </div>
@@ -439,20 +427,20 @@ export function DepartmentDashboardClient({
             {/* Coverage Progress Bar Card */}
             <div className="neumo-card p-6 sm:p-7 space-y-4">
               <div className="flex items-center justify-between text-sm sm:text-base">
-                <span className="font-extrabold text-slate-900 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-teal-700" /> Overall Mentee Reach
+                <span className="font-extrabold text-[#242924] flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-[#527A5B]" /> Overall Mentee Reach
                 </span>
-                <span className="font-extrabold text-teal-900">{c.studentsReached} of {c.totalStudents} students reached</span>
+                <span className="font-extrabold text-[#527A5B]">{c.studentsReached} of {c.totalStudents} students reached</span>
               </div>
               <div className="h-4 w-full overflow-hidden rounded-full neumo-inset p-0.5">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-teal-700 to-teal-600 transition-all duration-700 ease-out shadow-xs"
+                  className="h-full rounded-full bg-gradient-to-r from-[#527A5B] to-[#42664A] transition-all duration-700 ease-out shadow-xs"
                   style={{ width: `${coveragePercent}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-700 font-semibold">
+              <div className="flex items-center justify-between text-xs text-[#5F6962] font-semibold">
                 <span>{unreached} students have not had a meeting logged in this period.</span>
-                <span className="text-teal-800 font-extrabold">{coveragePercent}% Target Benchmark</span>
+                <span className="text-[#527A5B] font-extrabold">{coveragePercent}% Target Benchmark</span>
               </div>
             </div>
 
@@ -464,30 +452,30 @@ export function DepartmentDashboardClient({
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpandedCard(expandedCard === "students" ? null : "students"); }}
-                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
-                  expandedCard === "students" ? "neumo-card-pressed" : ""
+                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-[#527A5B]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#527A5B] ${
+                  expandedCard === "students" ? "neumo-card-pressed border-[#527A5B]" : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-600">Students Reached</span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-800 shadow-inner shrink-0">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962]">Students Reached</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 border border-[#DCE4DD]">
                     <Users className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight">{c.studentsReached}</p>
-                <div className="mt-2 flex items-center justify-between text-xs text-slate-700 font-semibold">
+                <p className="mt-3 text-3xl font-extrabold text-[#242924] tracking-tight">{c.studentsReached}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-[#5F6962] font-semibold">
                   <span>out of {c.totalStudents} students</span>
-                  <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${expandedCard === "students" ? "rotate-180 text-teal-800" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 text-[#5F6962] transition-transform ${expandedCard === "students" ? "rotate-180 text-[#527A5B]" : ""}`} />
                 </div>
                 {expandedCard === "students" && (
-                  <div className="mt-4 pt-3 border-t border-slate-300 space-y-2 text-xs text-slate-800 animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
+                  <div className="mt-4 pt-3 border-t border-[#DCE4DD] space-y-2 text-xs text-[#242924] animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-between font-bold">
-                      <span>Reach Rate:</span>
-                      <span className="text-teal-900">{coveragePercent}%</span>
+                      <span className="text-[#5F6962]">Reach Rate:</span>
+                      <span className="text-[#527A5B]">{coveragePercent}%</span>
                     </div>
-                    <div className="flex justify-between text-slate-700">
+                    <div className="flex justify-between text-[#5F6962]">
                       <span>Unreached:</span>
-                      <span className="font-bold">{unreached} students</span>
+                      <span className="font-bold text-[#242924]">{unreached} students</span>
                     </div>
                   </div>
                 )}
@@ -499,32 +487,32 @@ export function DepartmentDashboardClient({
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpandedCard(expandedCard === "faculty" ? null : "faculty"); }}
-                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 ${
-                  expandedCard === "faculty" ? "neumo-card-pressed" : ""
+                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-[#527A5B]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#527A5B] ${
+                  expandedCard === "faculty" ? "neumo-card-pressed border-[#527A5B]" : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-600">Faculty Mentors</span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-800 shadow-inner shrink-0">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962]">Faculty Mentors</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 border border-[#DCE4DD]">
                     <Building2 className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight">{c.totalFaculty ?? faculty.length}</p>
-                <div className="mt-2 flex items-center justify-between text-xs text-slate-700 font-semibold">
+                <p className="mt-3 text-3xl font-extrabold text-[#242924] tracking-tight">{c.totalFaculty ?? faculty.length}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-[#5F6962] font-semibold">
                   <span>active department faculty</span>
-                  <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${expandedCard === "faculty" ? "rotate-180 text-indigo-800" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 text-[#5F6962] transition-transform ${expandedCard === "faculty" ? "rotate-180 text-[#527A5B]" : ""}`} />
                 </div>
                 {expandedCard === "faculty" && (
-                  <div className="mt-4 pt-3 border-t border-slate-300 space-y-2 text-xs text-slate-800 animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
+                  <div className="mt-4 pt-3 border-t border-[#DCE4DD] space-y-2 text-xs text-[#242924] animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-between font-bold">
-                      <span>Avg Mentees per Mentor:</span>
-                      <span className="text-indigo-900">
+                      <span className="text-[#5F6962]">Avg Mentees per Mentor:</span>
+                      <span className="text-[#527A5B]">
                         {faculty.length > 0 ? (c.totalStudents / faculty.length).toFixed(1) : 0}
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-700">
+                    <div className="flex justify-between text-[#5F6962]">
                       <span>Unassigned Students:</span>
-                      <span className="font-bold text-amber-700">{unassignedCount}</span>
+                      <span className="font-bold text-amber-600">{unassignedCount}</span>
                     </div>
                   </div>
                 )}
@@ -536,26 +524,26 @@ export function DepartmentDashboardClient({
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpandedCard(expandedCard === "meetings" ? null : "meetings"); }}
-                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
-                  expandedCard === "meetings" ? "neumo-card-pressed" : ""
+                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-[#527A5B]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#527A5B] ${
+                  expandedCard === "meetings" ? "neumo-card-pressed border-[#527A5B]" : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-600">Meetings Logged</span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800 shadow-inner shrink-0">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962]">Meetings Logged</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 border border-[#DCE4DD]">
                     <CheckCircle2 className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight">{c.meetingsLogged}</p>
-                <div className="mt-2 flex items-center justify-between text-xs text-slate-700 font-semibold">
+                <p className="mt-3 text-3xl font-extrabold text-[#242924] tracking-tight">{c.meetingsLogged}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-[#5F6962] font-semibold">
                   <span>recorded in {c.periodDays} days</span>
-                  <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${expandedCard === "meetings" ? "rotate-180 text-emerald-800" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 text-[#5F6962] transition-transform ${expandedCard === "meetings" ? "rotate-180 text-[#527A5B]" : ""}`} />
                 </div>
                 {expandedCard === "meetings" && (
-                  <div className="mt-4 pt-3 border-t border-slate-300 space-y-2 text-xs text-slate-800 animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
+                  <div className="mt-4 pt-3 border-t border-[#DCE4DD] space-y-2 text-xs text-[#242924] animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-between font-bold">
-                      <span>Avg per Reached Student:</span>
-                      <span className="text-emerald-900">
+                      <span className="text-[#5F6962]">Avg per Reached Student:</span>
+                      <span className="text-[#527A5B]">
                         {c.studentsReached > 0 ? (c.meetingsLogged / c.studentsReached).toFixed(1) : 0}
                       </span>
                     </div>
@@ -569,26 +557,26 @@ export function DepartmentDashboardClient({
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpandedCard(expandedCard === "followups" ? null : "followups"); }}
-                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 ${
-                  expandedCard === "followups" ? "neumo-card-pressed" : ""
+                className={`neumo-card p-5 cursor-pointer transition-all hover:-translate-y-1 hover:border-[#527A5B]/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#527A5B] ${
+                  expandedCard === "followups" ? "neumo-card-pressed border-[#527A5B]" : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-600">Follow-Ups Pending</span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-800 shadow-inner shrink-0">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962]">Follow-Ups Pending</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 border border-[#DCE4DD]">
                     <Clock className="h-5 w-5" />
                   </div>
                 </div>
-                <p className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight">{c.pendingFollowUps}</p>
-                <div className="mt-2 flex items-center justify-between text-xs text-slate-700 font-semibold">
+                <p className="mt-3 text-3xl font-extrabold text-[#242924] tracking-tight">{c.pendingFollowUps}</p>
+                <div className="mt-2 flex items-center justify-between text-xs text-[#5F6962] font-semibold">
                   <span>action items awaiting completion</span>
-                  <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${expandedCard === "followups" ? "rotate-180 text-amber-800" : ""}`} />
+                  <ChevronDown className={`h-4 w-4 text-[#5F6962] transition-transform ${expandedCard === "followups" ? "rotate-180 text-[#527A5B]" : ""}`} />
                 </div>
                 {expandedCard === "followups" && (
-                  <div className="mt-4 pt-3 border-t border-slate-300 space-y-2 text-xs text-slate-800 animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
+                  <div className="mt-4 pt-3 border-t border-[#DCE4DD] space-y-2 text-xs text-[#242924] animate-fadeIn font-medium" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-between font-bold">
-                      <span>Tracking Status:</span>
-                      <span className="text-amber-900">Active Monitoring</span>
+                      <span className="text-[#5F6962]">Tracking Status:</span>
+                      <span className="text-[#527A5B]">Active Monitoring</span>
                     </div>
                   </div>
                 )}
@@ -596,20 +584,20 @@ export function DepartmentDashboardClient({
             </div>
 
             {/* HOD Alert Threshold Settings Card */}
-            <div className="neumo-card p-6 sm:p-7 space-y-4 border-teal-200">
+            <div className="neumo-card p-6 sm:p-7 space-y-4 border-[#527A5B]/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-100 text-teal-800 shadow-inner shrink-0">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 border border-[#DCE4DD]">
                     <Settings className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-slate-900">Department Alert Thresholds</h3>
-                    <p className="text-xs text-slate-600 font-medium">Configure early warning detection thresholds for your department</p>
+                    <h3 className="text-base font-extrabold text-[#242924]">Department Alert Thresholds</h3>
+                    <p className="text-xs text-[#5F6962] font-medium">Configure early warning detection thresholds for your department</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowThresholdSettings(!showThresholdSettings)}
-                  className="px-4 py-2 rounded-xl bg-[#f0f4f8] text-teal-900 font-bold text-xs neumo-card hover:shadow-[4px_4px_10px_rgba(163,177,198,0.5)] transition-all flex items-center gap-1.5 active:scale-95"
+                  className="px-4 py-2 rounded-xl bg-[#EEF2EF] text-[#242924] font-bold text-xs neumo-card hover:border-[#527A5B] transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
                 >
                   {showThresholdSettings ? "Hide Settings" : "Configure Thresholds"}
                   <ChevronDown className={`h-4 w-4 transition-transform ${showThresholdSettings ? "rotate-180" : ""}`} />
@@ -617,91 +605,91 @@ export function DepartmentDashboardClient({
               </div>
 
               {showThresholdSettings && (
-                <form onSubmit={handleSaveThresholds} className="mt-4 pt-4 border-t border-slate-300 space-y-4 animate-fadeIn">
+                <form onSubmit={handleSaveThresholds} className="mt-4 pt-4 border-t border-[#DCE4DD] space-y-4 animate-fadeIn">
                   <div className="rounded-xl p-3 bg-amber-50 border border-amber-200 text-xs text-amber-900 font-semibold flex items-center gap-2">
                     <AlertCircle className="h-4 w-4 text-amber-700 shrink-0" />
                     <span>Persistence not connected yet — values are for local UI preview testing only and will not modify database configurations.</span>
                   </div>
 
                   {thresholdError && (
-                    <div className="rounded-xl p-3 bg-red-50 border border-red-200 text-xs text-red-900 font-semibold flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-red-700 shrink-0" />
+                    <div className="rounded-xl p-3 bg-red-50 border border-red-200 text-xs text-red-800 font-semibold flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
                       <span>{thresholdError}</span>
                     </div>
                   )}
 
                   {thresholdSuccess && (
-                    <div className="rounded-xl p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-semibold flex items-center gap-2">
-                      <Check className="h-4 w-4 text-emerald-700 shrink-0" />
+                    <div className="rounded-xl p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center gap-2">
+                      <Check className="h-4 w-4 text-emerald-600 shrink-0" />
                       <span>Local UI preview settings successfully updated (Database persistence pending connection).</span>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-slate-700">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-[#5F6962]">
                     <div className="space-y-1.5">
-                      <label htmlFor="lowAttendancePct">Low Attendance Threshold (%)</label>
+                      <label htmlFor="lowAttendancePct" className="text-[#242924]">Low Attendance Threshold (%)</label>
                       <input
                         id="lowAttendancePct"
                         type="number"
                         step="any"
                         value={thresholds.lowAttendancePct}
                         onChange={(e) => setThresholds({ ...thresholds, lowAttendancePct: e.target.value })}
-                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="criticalAttendancePct">Critical Attendance Threshold (%)</label>
+                      <label htmlFor="criticalAttendancePct" className="text-[#242924]">Critical Attendance Threshold (%)</label>
                       <input
                         id="criticalAttendancePct"
                         type="number"
                         step="any"
                         value={thresholds.criticalAttendancePct}
                         onChange={(e) => setThresholds({ ...thresholds, criticalAttendancePct: e.target.value })}
-                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="dropWindowWeeks">Attendance Drop Window (Weeks)</label>
+                      <label htmlFor="dropWindowWeeks" className="text-[#242924]">Attendance Drop Window (Weeks)</label>
                       <input
                         id="dropWindowWeeks"
                         type="number"
                         step="1"
                         value={thresholds.dropWindowWeeks}
                         onChange={(e) => setThresholds({ ...thresholds, dropWindowWeeks: e.target.value })}
-                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="dropPoints">Attendance Drop Points (%)</label>
+                      <label htmlFor="dropPoints" className="text-[#242924]">Attendance Drop Points (%)</label>
                       <input
                         id="dropPoints"
                         type="number"
                         step="any"
                         value={thresholds.dropPoints}
                         onChange={(e) => setThresholds({ ...thresholds, dropPoints: e.target.value })}
-                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="marksDropPoints">Marks Decline Threshold (Points)</label>
+                      <label htmlFor="marksDropPoints" className="text-[#242924]">Marks Decline Threshold (Points)</label>
                       <input
                         id="marksDropPoints"
                         type="number"
                         step="any"
                         value={thresholds.marksDropPoints}
                         onChange={(e) => setThresholds({ ...thresholds, marksDropPoints: e.target.value })}
-                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label htmlFor="lmsInactiveDays">LMS Inactivity Threshold (Days)</label>
+                      <label htmlFor="lmsInactiveDays" className="text-[#242924]">LMS Inactivity Threshold (Days)</label>
                       <input
                         id="lmsInactiveDays"
                         type="number"
                         step="1"
                         value={thresholds.lmsInactiveDays}
                         onChange={(e) => setThresholds({ ...thresholds, lmsInactiveDays: e.target.value })}
-                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                        className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all"
                       />
                     </div>
                   </div>
@@ -710,7 +698,7 @@ export function DepartmentDashboardClient({
                     <button
                       type="submit"
                       disabled={isSavingThresholds}
-                      className="px-5 py-2.5 rounded-xl bg-teal-700 text-white font-bold text-xs shadow-md hover:bg-teal-800 transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95"
+                      className="px-5 py-2.5 rounded-xl bg-[#527A5B] text-[#FFFFFF] font-extrabold text-xs shadow-lg hover:bg-[#42664A] transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
                     >
                       {isSavingThresholds && <Loader2 className="h-4 w-4 animate-spin" />}
                       {isSavingThresholds ? "Updating Preview..." : "Save Preview Settings"}
@@ -728,20 +716,20 @@ export function DepartmentDashboardClient({
             <div className="neumo-card p-6 sm:p-7 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900">Department Faculty & Mentors</h3>
-                  <p className="text-xs text-slate-600 font-medium">Manage faculty assignments, view reach rates, and add department mentors.</p>
+                  <h3 className="text-lg font-extrabold text-[#242924]">Department Faculty & Mentors</h3>
+                  <p className="text-xs text-[#5F6962] font-medium">Manage faculty assignments, view reach rates, and add department mentors.</p>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <button
                     onClick={handleExportFacultyCsv}
-                    className="px-4 py-2.5 rounded-xl bg-[#f0f4f8] text-teal-900 font-bold text-xs neumo-card hover:shadow-[4px_4px_10px_rgba(163,177,198,0.5)] transition-all flex items-center gap-1.5 active:scale-95"
+                    className="px-4 py-2.5 rounded-xl bg-[#FFFFFF] text-[#527A5B] font-bold text-xs neumo-card hover:border-[#527A5B] transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
                   >
-                    <Download className="h-4 w-4 text-teal-700" />
+                    <Download className="h-4 w-4 text-[#527A5B]" />
                     <span>Export Faculty CSV</span>
                   </button>
                   <button
                     onClick={() => setShowAddFacultyModal(true)}
-                    className="px-4 py-2.5 rounded-xl bg-teal-700 text-white font-bold text-xs shadow-md hover:bg-teal-800 transition-all flex items-center gap-1.5 active:scale-95"
+                    className="px-4 py-2.5 rounded-xl bg-[#527A5B] text-[#FFFFFF] font-extrabold text-xs shadow-lg hover:bg-[#42664A] transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
                   >
                     <UserPlus className="h-4 w-4" />
                     <span>Add Faculty</span>
@@ -752,34 +740,34 @@ export function DepartmentDashboardClient({
               {/* Search bar */}
               <div className="flex items-center gap-2 pt-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#737D76]" />
                   <input
                     type="text"
                     placeholder="Search faculty by name or mobile..."
                     value={facultySearch}
                     onChange={(e) => setFacultySearch(e.target.value)}
-                    className="w-full rounded-xl neumo-inset pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-900 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                    className="w-full rounded-xl neumo-inset pl-10 pr-4 py-2.5 text-xs font-semibold text-[#242924] border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all placeholder:text-[#737D76]"
                   />
                 </div>
               </div>
 
               {/* Faculty Table */}
               <div className="overflow-x-auto pt-2">
-                <table className="w-full text-left text-xs text-slate-800">
-                  <thead className="bg-[#e6edf4] text-slate-700 font-extrabold uppercase tracking-wider border-b border-slate-300">
+                <table className="w-full text-left text-xs text-[#242924]">
+                  <thead className="bg-[#EEF2EF] text-[#5F6962] font-extrabold uppercase tracking-wider border-b border-[#DCE4DD]">
                     <tr>
-                      <th className="px-4 py-3 rounded-l-xl">Faculty Name</th>
-                      <th className="px-4 py-3">Mobile Identifier</th>
-                      <th className="px-4 py-3 text-center">Assigned Mentees</th>
-                      <th className="px-4 py-3 text-center">Reached</th>
-                      <th className="px-4 py-3 text-center">Pending Follow-Ups</th>
-                      <th className="px-4 py-3 text-right rounded-r-xl">Actions</th>
+                      <th className="px-4 py-3.5 rounded-l-xl">Faculty Name</th>
+                      <th className="px-4 py-3.5">Mobile Identifier</th>
+                      <th className="px-4 py-3.5 text-center">Assigned Mentees</th>
+                      <th className="px-4 py-3.5 text-center">Reached</th>
+                      <th className="px-4 py-3.5 text-center">Pending Follow-Ups</th>
+                      <th className="px-4 py-3.5 text-right rounded-r-xl">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200 font-medium">
+                  <tbody className="divide-y divide-[#DCE4DD] font-medium">
                     {filteredFaculty.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="text-center py-8 text-slate-500 font-semibold">
+                        <td colSpan={6} className="text-center py-8 text-[#5F6962] font-semibold">
                           No faculty members found matching your search.
                         </td>
                       </tr>
@@ -787,32 +775,32 @@ export function DepartmentDashboardClient({
                       filteredFaculty.map((f) => {
                         const reachRate = f.assignedCount > 0 ? Math.round((f.reachedCount / f.assignedCount) * 100) : 0;
                         return (
-                          <tr key={f.id} className="hover:bg-slate-100/60 transition-colors">
-                            <td className="px-4 py-3.5 font-bold text-slate-900 flex items-center gap-2.5">
-                              <div className="h-8 w-8 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
+                          <tr key={f.id} className="hover:bg-[#F0F5F1] transition-colors">
+                            <td className="px-4 py-3.5 font-bold text-[#242924] flex items-center gap-2.5">
+                              <div className="h-8 w-8 rounded-full bg-[#EEF2EF] text-[#527A5B] flex items-center justify-center font-bold text-xs shadow-inner shrink-0 border border-[#DCE4DD]">
                                 {f.name.charAt(0)}
                               </div>
                               <div>
                                 <p>{f.name}</p>
-                                <span className="text-[10px] text-slate-500 font-medium">ID: {f.id.slice(-6)}</span>
+                                <span className="text-[10px] text-[#5F6962] font-medium">ID: {f.id.slice(-6)}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3.5 text-slate-700 font-semibold">{f.mobile}</td>
-                            <td className="px-4 py-3.5 text-center font-bold text-slate-900">{f.assignedCount}</td>
+                            <td className="px-4 py-3.5 text-[#5F6962] font-semibold">{f.mobile}</td>
+                            <td className="px-4 py-3.5 text-center font-bold text-[#242924]">{f.assignedCount}</td>
                             <td className="px-4 py-3.5 text-center">
-                              <Badge variant="secondary" className="bg-emerald-100 text-emerald-900 border-emerald-300 font-bold text-[11px]">
+                              <Badge variant="secondary" className="bg-emerald-50 text-emerald-800 border-emerald-200 font-bold text-[11px]">
                                 {f.reachedCount} ({reachRate}%)
                               </Badge>
                             </td>
                             <td className="px-4 py-3.5 text-center">
-                              <Badge variant="secondary" className={`font-bold text-[11px] ${f.pendingFollowUpsCount > 0 ? "bg-amber-100 text-amber-900 border-amber-300" : "bg-slate-100 text-slate-700"}`}>
+                              <Badge variant="secondary" className={`font-bold text-[11px] ${f.pendingFollowUpsCount > 0 ? "bg-amber-50 text-amber-900 border-amber-200" : "bg-[#EEF2EF] text-[#5F6962] border-[#DCE4DD]"}`}>
                                 {f.pendingFollowUpsCount} open
                               </Badge>
                             </td>
                             <td className="px-4 py-3.5 text-right">
                               <button
                                 onClick={() => setSelectedFacultyForAssignment(f)}
-                                className="px-3 py-1.5 rounded-lg bg-[#f0f4f8] text-teal-900 font-bold text-xs neumo-card hover:shadow-[4px_4px_10px_rgba(163,177,198,0.5)] transition-all active:scale-95"
+                                className="px-3 py-1.5 rounded-lg bg-[#FFFFFF] text-[#527A5B] font-bold text-xs neumo-card hover:border-[#527A5B] transition-all active:scale-95 cursor-pointer"
                               >
                                 View Assignments
                               </button>
@@ -828,17 +816,17 @@ export function DepartmentDashboardClient({
           </div>
         )}
 
-        {/* TAB 3: STUDENT ROSTER (MODERNIZED WITH FACULTY CARDS & MODERN DROPDOWN) */}
+        {/* TAB 3: STUDENT ROSTER */}
         {activeTab === "students" && (
           <div className="space-y-6 animate-fadeIn">
             <div className="neumo-card p-6 sm:p-7 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900">Department Student Roster</h3>
-                  <p className="text-xs text-slate-600 font-medium">Inspect department students, reach status, and faculty mentor mappings.</p>
+                  <h3 className="text-lg font-extrabold text-[#242924]">Department Student Roster</h3>
+                  <p className="text-xs text-[#5F6962] font-medium">Inspect department students, reach status, and faculty mentor mappings.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-teal-100 text-teal-900 border-teal-300 font-bold text-xs px-3 py-1.5">
+                  <Badge variant="secondary" className="bg-[#EEF2EF] text-[#527A5B] border-[#DCE4DD] font-bold text-xs px-3 py-1.5">
                     Total Enrolled: {students.length}
                   </Badge>
                 </div>
@@ -847,11 +835,11 @@ export function DepartmentDashboardClient({
               {/* Interactive Faculty Overview Cards for Quick Filtering */}
               <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-600">Filter Roster by Faculty Mentor</h4>
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962]">Filter Roster by Faculty Mentor</h4>
                   {selectedFacultyFilter !== "all" && (
                     <button
                       onClick={() => setSelectedFacultyFilter("all")}
-                      className="text-xs text-teal-700 font-bold hover:underline flex items-center gap-1"
+                      className="text-xs text-[#527A5B] font-bold hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       Clear Faculty Filter <X className="h-3 w-3" />
                     </button>
@@ -863,11 +851,11 @@ export function DepartmentDashboardClient({
                     role="button"
                     tabIndex={0}
                     className={`neumo-card p-3.5 cursor-pointer transition-all hover:-translate-y-1 ${
-                      selectedFacultyFilter === "all" ? "ring-2 ring-teal-600 bg-teal-50/60 shadow-md" : ""
+                      selectedFacultyFilter === "all" ? "ring-2 ring-[#527A5B] bg-[#E5F3E8] shadow-md border-[#527A5B]" : ""
                     }`}
                   >
-                    <p className="text-xs font-bold text-slate-600">All Faculty</p>
-                    <p className="text-base font-extrabold text-slate-900 mt-1">{students.length} Students</p>
+                    <p className="text-xs font-bold text-[#5F6962]">All Faculty</p>
+                    <p className="text-base font-extrabold text-[#242924] mt-1">{students.length} Students</p>
                   </div>
                   {faculty.map((f) => {
                     const isSelected = selectedFacultyFilter === f.id;
@@ -879,16 +867,16 @@ export function DepartmentDashboardClient({
                         role="button"
                         tabIndex={0}
                         className={`neumo-card p-3.5 cursor-pointer transition-all hover:-translate-y-1 ${
-                          isSelected ? "ring-2 ring-teal-600 bg-teal-50/60 shadow-md" : ""
+                          isSelected ? "ring-2 ring-[#527A5B] bg-[#E5F3E8] shadow-md border-[#527A5B]" : ""
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <p className="text-xs font-extrabold text-slate-900 truncate">{f.name}</p>
-                          <Badge variant="secondary" className="bg-teal-100 text-teal-900 font-bold text-[10px]">
+                          <p className="text-xs font-extrabold text-[#242924] truncate">{f.name}</p>
+                          <Badge variant="secondary" className="bg-[#EEF2EF] text-[#527A5B] font-bold text-[10px] border-[#DCE4DD]">
                             {reachRate}%
                           </Badge>
                         </div>
-                        <p className="text-[11px] text-slate-600 font-semibold mt-1">{f.assignedCount} Mentees</p>
+                        <p className="text-[11px] text-[#5F6962] font-semibold mt-1">{f.assignedCount} Mentees</p>
                       </div>
                     );
                   })}
@@ -896,26 +884,26 @@ export function DepartmentDashboardClient({
               </div>
 
               {/* Filters & Search Toolbar with Modernized Custom Dropdown */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-slate-300/60">
+              <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-[#DCE4DD]">
                 <div className="relative flex-1 w-full">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#737D76]" />
                   <input
                     type="text"
                     placeholder="Search student by name or roll number..."
                     value={studentSearch}
                     onChange={(e) => setStudentSearch(e.target.value)}
-                    className="w-full rounded-xl neumo-inset pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-900 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                    className="w-full rounded-xl neumo-inset pl-10 pr-4 py-2.5 text-xs font-semibold text-[#242924] border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all placeholder:text-[#737D76]"
                   />
                 </div>
                 <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0 relative">
-                  {/* Modernized Status Dropdown */}
+                  {/* Status Dropdown */}
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                      className="px-4 py-2.5 rounded-xl bg-[#f0f4f8] text-slate-800 font-bold text-xs neumo-card hover:shadow-[4px_4px_10px_rgba(163,177,198,0.5)] transition-all flex items-center gap-2"
+                      className="px-4 py-2.5 rounded-xl bg-[#FFFFFF] text-[#242924] font-bold text-xs neumo-card hover:border-[#527A5B] transition-all flex items-center gap-2 cursor-pointer"
                     >
-                      <Filter className="h-4 w-4 text-teal-700" />
+                      <Filter className="h-4 w-4 text-[#527A5B]" />
                       <span>
                         Status: {studentFilter === "all" ? "All" : studentFilter === "reached" ? "Reached" : studentFilter === "unreached" ? "Unreached" : "Unassigned"}
                       </span>
@@ -923,7 +911,7 @@ export function DepartmentDashboardClient({
                     </button>
 
                     {showStatusDropdown && (
-                      <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#f0f4f8] shadow-2xl border border-slate-300/80 z-30 p-1.5 space-y-1 animate-fadeIn">
+                      <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#FFFFFF] shadow-2xl border border-[#DCE4DD] z-30 p-1.5 space-y-1 animate-fadeIn">
                         {[
                           { key: "all", label: "All Students" },
                           { key: "reached", label: "Reached" },
@@ -933,11 +921,11 @@ export function DepartmentDashboardClient({
                           <button
                             key={opt.key}
                             onClick={() => {
-                              setStudentFilter(opt.key as any);
+                              setStudentFilter(opt.key as "all" | "reached" | "unreached" | "unassigned");
                               setShowStatusDropdown(false);
                             }}
-                            className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
-                              studentFilter === opt.key ? "bg-teal-700 text-white shadow-xs" : "text-slate-700 hover:bg-slate-200/60"
+                            className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                              studentFilter === opt.key ? "bg-[#527A5B] text-[#FFFFFF] shadow-xs" : "text-[#5F6962] hover:bg-[#F0F5F1] hover:text-[#242924]"
                             }`}
                           >
                             {opt.label}
@@ -951,8 +939,8 @@ export function DepartmentDashboardClient({
 
               {/* Student Table */}
               <div className="overflow-x-auto pt-1">
-                <table className="w-full text-left text-xs text-slate-800">
-                  <thead className="bg-[#e6edf4] text-slate-700 font-extrabold uppercase tracking-wider border-b border-slate-300">
+                <table className="w-full text-left text-xs text-[#242924]">
+                  <thead className="bg-[#EEF2EF] text-[#5F6962] font-extrabold uppercase tracking-wider border-b border-[#DCE4DD]">
                     <tr>
                       <th className="px-4 py-3.5 rounded-l-xl">Roll Number</th>
                       <th className="px-4 py-3.5">Student Name</th>
@@ -961,31 +949,31 @@ export function DepartmentDashboardClient({
                       <th className="px-4 py-3.5 text-center rounded-r-xl">Open Follow-Ups</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200 font-medium">
+                  <tbody className="divide-y divide-[#DCE4DD] font-medium">
                     {filteredStudents.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="text-center py-10 text-slate-500 font-semibold">
+                        <td colSpan={5} className="text-center py-10 text-[#5F6962] font-semibold">
                           No students found matching your search or filters.
                         </td>
                       </tr>
                     ) : (
                       filteredStudents.map((s) => (
-                        <tr key={s.id} className="hover:bg-slate-100/60 transition-colors">
-                          <td className="px-4 py-3.5 font-bold text-slate-900">{s.rollNo}</td>
-                          <td className="px-4 py-3.5 font-bold text-slate-900">{s.name}</td>
-                          <td className="px-4 py-3.5 text-slate-700 font-semibold">
+                        <tr key={s.id} className="hover:bg-[#F0F5F1] transition-colors">
+                          <td className="px-4 py-3.5 font-bold text-[#242924]">{s.rollNo}</td>
+                          <td className="px-4 py-3.5 font-bold text-[#242924]">{s.name}</td>
+                          <td className="px-4 py-3.5 text-[#5F6962] font-semibold">
                             {s.mentorName ? (
-                              <span className="text-teal-900 font-bold">{s.mentorName}</span>
+                              <span className="text-[#527A5B] font-bold">{s.mentorName}</span>
                             ) : (
-                              <span className="text-amber-700 font-bold italic">Unassigned</span>
+                              <span className="text-amber-600 font-bold italic">Unassigned</span>
                             )}
                           </td>
                           <td className="px-4 py-3.5 text-center">
-                            <Badge variant="secondary" className={`font-bold text-[11px] ${s.reached ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-amber-100 text-amber-900 border-amber-300"}`}>
+                            <Badge variant="secondary" className={`font-bold text-[11px] ${s.reached ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-amber-50 text-amber-900 border-amber-200"}`}>
                               {s.reached ? "Reached" : "Unreached"}
                             </Badge>
                           </td>
-                          <td className="px-4 py-3.5 text-center font-bold text-slate-800">
+                          <td className="px-4 py-3.5 text-center font-bold text-[#242924]">
                             {s.pendingFollowUpsCount}
                           </td>
                         </tr>
@@ -1003,12 +991,12 @@ export function DepartmentDashboardClient({
           <div className="space-y-6 animate-fadeIn">
             <div className="neumo-card p-6 sm:p-7 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-800 shadow-inner shrink-0">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 border border-[#DCE4DD]">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900">Client-Side CSV Import Tool</h3>
-                  <p className="text-xs text-slate-600 font-medium">Upload student or faculty CSV rosters for client-side formatting validation and preview.</p>
+                  <h3 className="text-lg font-extrabold text-[#242924]">Client-Side CSV Import Tool</h3>
+                  <p className="text-xs text-[#5F6962] font-medium">Upload student or faculty CSV rosters for client-side formatting validation and preview.</p>
                 </div>
               </div>
 
@@ -1020,38 +1008,38 @@ export function DepartmentDashboardClient({
               </div>
 
               <div className="flex items-center gap-4 pt-2">
-                <label className="text-xs font-extrabold text-slate-700">Import Target:</label>
+                <label className="text-xs font-extrabold text-[#242924]">Import Target:</label>
                 <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-[#5F6962] cursor-pointer">
                     <input
                       type="radio"
                       name="importType"
                       checked={importType === "students"}
                       onChange={() => setImportType("students")}
-                      className="text-teal-700 focus:ring-teal-600"
+                      className="text-[#527A5B] focus:ring-[#527A5B]"
                     />
                     Student Roster
                   </label>
-                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer">
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-[#5F6962] cursor-pointer">
                     <input
                       type="radio"
                       name="importType"
                       checked={importType === "faculty"}
                       onChange={() => setImportType("faculty")}
-                      className="text-teal-700 focus:ring-teal-600"
+                      className="text-[#527A5B] focus:ring-[#527A5B]"
                     />
                     Faculty Roster
                   </label>
                 </div>
               </div>
 
-              <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-3 neumo-inset bg-[#f0f4f8]">
-                <Upload className="mx-auto h-8 w-8 text-teal-700" />
+              <div className="border-2 border-dashed border-[#DCE4DD] rounded-2xl p-8 text-center space-y-3 neumo-inset bg-[#EEF2EF]">
+                <Upload className="mx-auto h-8 w-8 text-[#527A5B]" />
                 <div>
-                  <p className="text-xs font-bold text-slate-800">
+                  <p className="text-xs font-bold text-[#242924]">
                     {csvFile ? `Selected file: ${csvFile.name}` : "Drag and drop your CSV file here, or click to browse"}
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-1">
+                  <p className="text-[11px] text-[#5F6962] mt-1">
                     {importType === "students"
                       ? "Expected CSV columns: rollNo, name, mobile (or email)"
                       : "Expected CSV columns: name, mobile, email"}
@@ -1062,47 +1050,47 @@ export function DepartmentDashboardClient({
                   accept=".csv"
                   onChange={handleFileUpload}
                   aria-label="Upload CSV file for roster import"
-                  className="mx-auto block text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-700 file:text-white hover:file:bg-teal-800 cursor-pointer transition-colors"
+                  className="mx-auto block text-xs text-[#5F6962] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-[#527A5B] file:text-[#FFFFFF] hover:file:bg-[#42664A] cursor-pointer transition-colors"
                 />
               </div>
 
               {csvError && (
-                <div className="rounded-xl p-3 bg-red-50 border border-red-200 text-xs text-red-900 font-semibold flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-700 shrink-0" />
+                <div className="rounded-xl p-3 bg-red-50 border border-red-200 text-xs text-red-800 font-semibold flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
                   <span>{csvError}</span>
                 </div>
               )}
 
               {isParsingCsv && (
-                <div className="flex items-center justify-center py-6 gap-2 text-xs font-bold text-slate-700">
-                  <Loader2 className="h-5 w-5 animate-spin text-teal-700" />
+                <div className="flex items-center justify-center py-6 gap-2 text-xs font-bold text-[#5F6962]">
+                  <Loader2 className="h-5 w-5 animate-spin text-[#527A5B]" />
                   <span>Parsing and validating CSV structure...</span>
                 </div>
               )}
 
               {csvPreviewRows.length > 0 && !isParsingCsv && (
-                <div className="space-y-4 pt-4 border-t border-slate-300 animate-fadeIn">
+                <div className="space-y-4 pt-4 border-t border-[#DCE4DD] animate-fadeIn">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-slate-900">
+                    <span className="text-xs font-extrabold text-[#242924]">
                       CSV Parse Preview ({csvPreviewRows.length} rows detected)
                     </span>
-                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-900 border-emerald-300 font-bold text-xs">
+                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-800 border-emerald-200 font-bold text-xs">
                       Headers Validated
                     </Badge>
                   </div>
 
-                  <div className="overflow-x-auto max-h-64 rounded-xl neumo-inset p-2">
-                    <table className="w-full text-left text-xs text-slate-800">
-                      <thead className="bg-[#e6edf4] text-slate-700 font-extrabold uppercase tracking-wider">
+                  <div className="overflow-x-auto max-h-64 rounded-xl neumo-inset p-2 bg-[#EEF2EF]">
+                    <table className="w-full text-left text-xs text-[#242924]">
+                      <thead className="bg-[#FFFFFF] text-[#5F6962] font-extrabold uppercase tracking-wider border-b border-[#DCE4DD]">
                         <tr>
                           {csvHeaders.map((h, i) => (
                             <th key={i} className="px-3 py-2">{h}</th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-200 font-medium">
+                      <tbody className="divide-y divide-[#DCE4DD] font-medium">
                         {csvPreviewRows.slice(0, 10).map((row, idx) => (
-                          <tr key={idx} className="hover:bg-slate-100/40">
+                          <tr key={idx} className="hover:bg-[#FFFFFF]/60">
                             {csvHeaders.map((h, i) => (
                               <td key={i} className="px-3 py-2">{row[h] || "—"}</td>
                             ))}
@@ -1112,7 +1100,7 @@ export function DepartmentDashboardClient({
                     </table>
                   </div>
                   {csvPreviewRows.length > 10 && (
-                    <p className="text-[11px] text-slate-500 italic">Showing first 10 of {csvPreviewRows.length} rows.</p>
+                    <p className="text-[11px] text-[#5F6962] italic">Showing first 10 of {csvPreviewRows.length} rows.</p>
                   )}
                 </div>
               )}
@@ -1123,22 +1111,22 @@ export function DepartmentDashboardClient({
 
       {/* MODAL 1: ADD FACULTY */}
       {showAddFacultyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-fadeIn">
-          <div className="neumo-card w-full max-w-md p-6 sm:p-7 space-y-4 bg-[#edf2f7] shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
+          <div className="neumo-card w-full max-w-md p-6 sm:p-7 space-y-4 bg-[#FFFFFF] shadow-2xl relative border-[#DCE4DD]">
             <button
               onClick={() => setShowAddFacultyModal(false)}
-              className="absolute top-4 right-4 h-8 w-8 rounded-xl bg-[#f0f4f8] text-slate-700 flex items-center justify-center neumo-card hover:bg-slate-200 transition-colors"
+              className="absolute top-4 right-4 h-8 w-8 rounded-xl bg-[#EEF2EF] text-[#5F6962] flex items-center justify-center neumo-card hover:text-[#242924] transition-colors cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
 
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-100 text-teal-800 shadow-inner shrink-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 border border-[#DCE4DD]">
                 <UserPlus className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900">Add Faculty Member</h3>
-                <p className="text-xs text-slate-600 font-medium">Register a new faculty mentor in department</p>
+                <h3 className="text-base font-extrabold text-[#242924]">Add Faculty Member</h3>
+                <p className="text-xs text-[#5F6962] font-medium">Register a new faculty mentor in department</p>
               </div>
             </div>
 
@@ -1149,40 +1137,40 @@ export function DepartmentDashboardClient({
               </div>
 
               {addFacultyError && (
-                <div className="rounded-xl p-3 bg-red-50 border border-red-200 text-xs text-red-900 font-semibold flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-700 shrink-0" />
+                <div className="rounded-xl p-3 bg-red-50 border border-red-200 text-xs text-red-800 font-semibold flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
                   <span>{addFacultyError}</span>
                 </div>
               )}
 
               {addFacultySuccess && (
-                <div className="rounded-xl p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-semibold flex items-center gap-2">
-                  <Check className="h-4 w-4 text-emerald-700 shrink-0" />
+                <div className="rounded-xl p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-center gap-2">
+                  <Check className="h-4 w-4 text-emerald-600 shrink-0" />
                   <span>Faculty form validated successfully (Backend account provisioning pending).</span>
                 </div>
               )}
 
-              <div className="space-y-1.5 text-xs font-bold text-slate-700">
-                <label htmlFor="facultyName">Faculty Full Name *</label>
+              <div className="space-y-1.5 text-xs font-bold text-[#5F6962]">
+                <label htmlFor="facultyName" className="text-[#242924]">Faculty Full Name *</label>
                 <input
                   id="facultyName"
                   type="text"
                   placeholder="e.g. Dr. Jane Smith"
                   value={newFaculty.name}
                   onChange={(e) => setNewFaculty({ ...newFaculty, name: e.target.value })}
-                  className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                  className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all placeholder:text-[#737D76]"
                 />
               </div>
 
-              <div className="space-y-1.5 text-xs font-bold text-slate-700">
-                <label htmlFor="facultyMobile">Mobile Identifier (Login ID) *</label>
+              <div className="space-y-1.5 text-xs font-bold text-[#5F6962]">
+                <label htmlFor="facultyMobile" className="text-[#242924]">Mobile Identifier (Login ID) *</label>
                 <input
                   id="facultyMobile"
                   type="tel"
                   placeholder="e.g. 9876543210"
                   value={newFaculty.mobile}
                   onChange={(e) => setNewFaculty({ ...newFaculty, mobile: e.target.value })}
-                  className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-slate-900 font-semibold border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600 bg-transparent transition-all"
+                  className="w-full rounded-xl neumo-inset px-3.5 py-2.5 text-[#242924] font-semibold border border-[#DCE4DD] focus:outline-none focus:ring-2 focus:ring-[#527A5B] bg-[#FFFFFF] transition-all placeholder:text-[#737D76]"
                 />
               </div>
 
@@ -1190,14 +1178,14 @@ export function DepartmentDashboardClient({
                 <button
                   type="button"
                   onClick={() => setShowAddFacultyModal(false)}
-                  className="px-4 py-2.5 rounded-xl bg-[#f0f4f8] text-slate-700 font-bold text-xs neumo-card hover:bg-slate-200 transition-colors"
+                  className="px-4 py-2.5 rounded-xl bg-[#EEF2EF] text-[#5F6962] font-bold text-xs neumo-card hover:text-[#242924] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isAddingFaculty}
-                  className="px-5 py-2.5 rounded-xl bg-teal-700 text-white font-bold text-xs shadow-md hover:bg-teal-800 transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95"
+                  className="px-5 py-2.5 rounded-xl bg-[#527A5B] text-[#FFFFFF] font-extrabold text-xs shadow-lg hover:bg-[#42664A] transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
                 >
                   {isAddingFaculty && <Loader2 className="h-4 w-4 animate-spin" />}
                   {isAddingFaculty ? "Validating..." : "Register Faculty"}
@@ -1210,55 +1198,55 @@ export function DepartmentDashboardClient({
 
       {/* MODAL 2: FACULTY ASSIGNMENTS DRAWER */}
       {selectedFacultyForAssignment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 animate-fadeIn">
-          <div className="neumo-card w-full max-w-xl p-6 sm:p-7 space-y-4 bg-[#edf2f7] shadow-2xl relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-fadeIn">
+          <div className="neumo-card w-full max-w-xl p-6 sm:p-7 space-y-4 bg-[#FFFFFF] shadow-2xl relative border-[#DCE4DD] max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedFacultyForAssignment(null)}
-              className="absolute top-4 right-4 h-8 w-8 rounded-xl bg-[#f0f4f8] text-slate-700 flex items-center justify-center neumo-card hover:bg-slate-200 transition-colors"
+              className="absolute top-4 right-4 h-8 w-8 rounded-xl bg-[#EEF2EF] text-[#5F6962] flex items-center justify-center neumo-card hover:text-[#242924] transition-colors cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-800 shadow-inner shrink-0 font-extrabold text-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF2EF] text-[#527A5B] shadow-inner shrink-0 font-extrabold text-sm border border-[#DCE4DD]">
                 {selectedFacultyForAssignment.name.charAt(0)}
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-slate-900">{selectedFacultyForAssignment.name}</h3>
-                <p className="text-xs text-slate-600 font-medium">Assigned Mentees & Mentoring Activity</p>
+                <h3 className="text-base font-extrabold text-[#242924]">{selectedFacultyForAssignment.name}</h3>
+                <p className="text-xs text-[#5F6962] font-medium">Assigned Mentees & Mentoring Activity</p>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3 pt-2">
-              <div className="neumo-inset p-3 rounded-xl text-center">
-                <span className="text-[11px] font-bold text-slate-600 uppercase">Assigned</span>
-                <p className="text-xl font-extrabold text-slate-900 mt-1">{selectedFacultyForAssignment.assignedCount}</p>
+              <div className="neumo-inset p-3 rounded-xl text-center bg-[#EEF2EF]">
+                <span className="text-[11px] font-bold text-[#5F6962] uppercase">Assigned</span>
+                <p className="text-xl font-extrabold text-[#242924] mt-1">{selectedFacultyForAssignment.assignedCount}</p>
               </div>
-              <div className="neumo-inset p-3 rounded-xl text-center">
-                <span className="text-[11px] font-bold text-slate-600 uppercase">Reached</span>
-                <p className="text-xl font-extrabold text-emerald-800 mt-1">{selectedFacultyForAssignment.reachedCount}</p>
+              <div className="neumo-inset p-3 rounded-xl text-center bg-[#EEF2EF]">
+                <span className="text-[11px] font-bold text-[#5F6962] uppercase">Reached</span>
+                <p className="text-xl font-extrabold text-emerald-700 mt-1">{selectedFacultyForAssignment.reachedCount}</p>
               </div>
-              <div className="neumo-inset p-3 rounded-xl text-center">
-                <span className="text-[11px] font-bold text-slate-600 uppercase">Open Follow-Ups</span>
-                <p className="text-xl font-extrabold text-amber-800 mt-1">{selectedFacultyForAssignment.pendingFollowUpsCount}</p>
+              <div className="neumo-inset p-3 rounded-xl text-center bg-[#EEF2EF]">
+                <span className="text-[11px] font-bold text-[#5F6962] uppercase">Open Follow-Ups</span>
+                <p className="text-xl font-extrabold text-amber-700 mt-1">{selectedFacultyForAssignment.pendingFollowUpsCount}</p>
               </div>
             </div>
 
             <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Assigned Students Roster</h4>
+              <h4 className="text-xs font-extrabold text-[#5F6962] uppercase tracking-wider">Assigned Students Roster</h4>
               {selectedFacultyForAssignment.students.length === 0 ? (
-                <div className="rounded-xl p-4 neumo-inset text-center text-xs text-slate-500 font-semibold">
+                <div className="rounded-xl p-4 neumo-inset text-center text-xs text-[#5F6962] font-semibold bg-[#EEF2EF]">
                   No students currently assigned to this faculty member.
                 </div>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                   {selectedFacultyForAssignment.students.map((s) => (
-                    <div key={s.id} className="neumo-card p-3 flex items-center justify-between text-xs transition-all hover:bg-slate-100/60">
+                    <div key={s.id} className="neumo-card p-3 flex items-center justify-between text-xs transition-all hover:bg-[#F0F5F1]">
                       <div>
-                        <p className="font-extrabold text-slate-900">{s.name}</p>
-                        <span className="text-[11px] text-slate-500 font-semibold">Roll No: {s.rollNo}</span>
+                        <p className="font-extrabold text-[#242924]">{s.name}</p>
+                        <span className="text-[11px] text-[#5F6962] font-semibold">Roll No: {s.rollNo}</span>
                       </div>
-                      <Badge variant="secondary" className={`font-bold text-[11px] ${s.reached ? "bg-emerald-100 text-emerald-900 border-emerald-300" : "bg-amber-100 text-amber-900 border-amber-300"}`}>
+                      <Badge variant="secondary" className={`font-bold text-[11px] ${s.reached ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-amber-50 text-amber-900 border-amber-200"}`}>
                         {s.reached ? "Reached" : "Unreached"}
                       </Badge>
                     </div>
@@ -1270,7 +1258,7 @@ export function DepartmentDashboardClient({
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedFacultyForAssignment(null)}
-                className="px-5 py-2 rounded-xl bg-teal-700 text-white font-bold text-xs shadow-md hover:bg-teal-800 transition-all active:scale-95"
+                className="px-5 py-2 rounded-xl bg-[#527A5B] text-[#FFFFFF] font-extrabold text-xs shadow-lg hover:bg-[#42664A] transition-all active:scale-95 cursor-pointer"
               >
                 Close
               </button>

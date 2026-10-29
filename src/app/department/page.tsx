@@ -21,12 +21,16 @@ export default function DepartmentPage() {
   );
 }
 
+function getSinceDate(days: number) {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}
+
 async function Coverage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "HOD") redirect("/login");
 
   const days = 30;
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const since = getSinceDate(days);
 
   const [c, rawFaculty, rawStudents] = await Promise.all([
     getCoverage(user.departmentId, days),

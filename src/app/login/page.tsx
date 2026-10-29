@@ -39,21 +39,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#edf2f7]">
+    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#F6F8F6] text-[#242924]">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#f0f4f8] text-teal-700 shadow-[6px_6px_16px_rgba(163,177,198,0.6),-6px_-6px_16px_rgba(255,255,255,0.9)] border border-white/80">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#FFFFFF] text-[#527A5B] shadow-md border border-[#DCE4DD]">
           <GraduationCap className="h-10 w-10" />
         </div>
-        <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900">DevBuds Mentor</h1>
-        <p className="mt-2 text-sm text-slate-600 font-medium">Ten-Minute Faculty Mentoring & Early Warning System</p>
+        <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-[#242924]">DevBuds Mentor</h1>
+        <p className="mt-2 text-sm text-[#5F6962] font-medium">Ten-Minute Faculty Mentoring & Early Warning System</p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="neumo-card p-6 sm:p-8 space-y-6">
+        <div className="bg-[#FFFFFF] border border-[#DCE4DD] rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
           <form onSubmit={onSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
-                <Phone className="h-4 w-4 text-teal-700" />
+              <label className="block text-sm font-bold text-[#242924] flex items-center gap-2 mb-2">
+                <Phone className="h-4 w-4 text-[#527A5B]" />
                 Mobile number
               </label>
               <Input
@@ -62,13 +62,13 @@ export default function LoginPage() {
                 placeholder="e.g. 9000000001"
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                className="h-12 rounded-xl text-base neumo-inset border-slate-300 focus:bg-white focus:border-teal-700 text-slate-900 font-medium px-4"
+                className="h-12 rounded-xl text-base bg-[#FFFFFF] border-[#DCE4DD] focus-visible:ring-2 focus-visible:ring-[#527A5B] text-[#242924] font-medium px-4 placeholder:text-[#737D76]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-800 flex items-center gap-2 mb-2">
-                <KeyRound className="h-4 w-4 text-teal-700" />
+              <label className="block text-sm font-bold text-[#242924] flex items-center gap-2 mb-2">
+                <KeyRound className="h-4 w-4 text-[#527A5B]" />
                 OTP Verification Code
               </label>
               <Input
@@ -77,7 +77,7 @@ export default function LoginPage() {
                 placeholder="e.g. 123456"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="h-12 rounded-xl text-base neumo-inset border-slate-300 focus:bg-white focus:border-teal-700 text-slate-900 font-medium px-4"
+                className="h-12 rounded-xl text-base bg-[#FFFFFF] border-[#DCE4DD] focus-visible:ring-2 focus-visible:ring-[#527A5B] text-[#242924] font-medium px-4 placeholder:text-[#737D76]"
               />
             </div>
 
@@ -91,28 +91,28 @@ export default function LoginPage() {
               type="submit"
               disabled={busy}
               loading={busy}
-              className="h-12 w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-base font-bold text-white shadow-md active:scale-[0.98] transition-all mt-3"
+              className="h-12 w-full rounded-xl bg-[#527A5B] hover:bg-[#42664A] text-base font-extrabold text-[#FFFFFF] shadow-md active:scale-[0.98] transition-all mt-3 cursor-pointer"
             >
               {busy ? "Verifying..." : "Log in to portal"}
             </SmoothButton>
           </form>
 
-          <div className="rounded-xl neumo-inset p-4 text-xs text-slate-700 space-y-2.5">
-            <p className="font-bold text-slate-900 flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-teal-700" /> Demo Accounts (OTP: 123456):
+          <div className="rounded-xl bg-[#EEF2EF] border border-[#DCE4DD] p-4 text-xs text-[#5F6962] space-y-2.5">
+            <p className="font-bold text-[#242924] flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-[#527A5B]" /> Demo Accounts (OTP: 123456):
             </p>
             <div className="grid grid-cols-1 gap-2 pt-1">
-              <div className="flex items-center justify-between bg-[#f0f4f8] px-3 py-2 rounded-lg border border-slate-300/70 shadow-2xs">
-                <span className="font-semibold text-slate-700">Faculty Mentor:</span>
-                <code className="font-mono font-bold text-teal-800">9000000001</code>
+              <div className="flex items-center justify-between bg-[#FFFFFF] px-3 py-2 rounded-lg border border-[#DCE4DD]">
+                <span className="font-semibold text-[#5F6962]">Faculty Mentor:</span>
+                <code className="font-mono font-bold text-[#527A5B]">9000000001</code>
               </div>
-              <div className="flex items-center justify-between bg-[#f0f4f8] px-3 py-2 rounded-lg border border-slate-300/70 shadow-2xs">
-                <span className="font-semibold text-slate-700">Department Head (HOD):</span>
-                <code className="font-mono font-bold text-teal-800">9000000002</code>
+              <div className="flex items-center justify-between bg-[#FFFFFF] px-3 py-2 rounded-lg border border-[#DCE4DD]">
+                <span className="font-semibold text-[#5F6962]">Department Head (HOD):</span>
+                <code className="font-mono font-bold text-[#527A5B]">9000000002</code>
               </div>
-              <div className="flex items-center justify-between bg-[#f0f4f8] px-3 py-2 rounded-lg border border-slate-300/70 shadow-2xs">
-                <span className="font-semibold text-slate-700">Student Mentee:</span>
-                <code className="font-mono font-bold text-teal-800">9100000001</code>
+              <div className="flex items-center justify-between bg-[#FFFFFF] px-3 py-2 rounded-lg border border-[#DCE4DD]">
+                <span className="font-semibold text-[#5F6962]">Student Mentee:</span>
+                <code className="font-mono font-bold text-[#527A5B]">9100000001</code>
               </div>
             </div>
           </div>

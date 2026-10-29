@@ -1,116 +1,61 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), var(--font-tamil), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono, monospace);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-  --color-brand: var(--brand, oklch(0.52 0.14 185));
-  --color-brand-light: var(--brand-light, oklch(0.62 0.12 185));
-  --color-brand-lighter: var(--brand-lighter, oklch(0.92 0.04 185));
-  --color-brand-secondary: var(--brand-secondary, oklch(0.45 0.14 185));
-  --color-btn-drop: var(--btn-drop, rgb(0 0 0 / 0.15));
-  --color-btn-sheen: var(--btn-sheen, rgb(255 255 255 / 0.2));
-  --color-destructive-edge: var(--destructive-edge, #f61418);
-  --color-destructive-fg: var(--destructive-fg, #fff);
-  --color-destructive-hover: var(--destructive-hover, color-mix(in oklab, var(--color-destructive) 85%, black));
-  --color-destructive-top: var(--destructive-top, #fd4b4e);
-  --color-on-brand: var(--on-brand, #fff);
-  --color-amber: oklch(0.77 0.16 75);
-  --color-amber-fg: oklch(0.22 0 0);
-  --color-amber-hover: oklch(0.71 0.17 70);
-  --color-blue: oklch(0.62 0.19 256);
-  --color-blue-fg: #fff;
-  --color-blue-hover: oklch(0.56 0.2 256);
-  --color-green: oklch(0.7 0.17 152);
-  --color-green-fg: #fff;
-  --color-green-hover: oklch(0.64 0.18 152);
-  --color-thumb: #fff;
-  --color-smooth-50: oklch(0.99 0 0);
-  --color-smooth-100: oklch(0.972 0 0);
-  --color-smooth-200: oklch(0.945 0 0);
-  --color-smooth-300: oklch(0.91 0 0);
-  --color-smooth-400: oklch(0.865 0 0);
-  --color-smooth-500: oklch(0.81 0 0);
-  --color-smooth-600: oklch(0.74 0 0);
-  --color-smooth-700: oklch(0.66 0 0);
-  --color-smooth-800: oklch(0.56 0 0);
-  --color-smooth-900: oklch(0.47 0 0);
-  --color-smooth-950: oklch(0.36 0 0);
-  --color-smooth-1000: oklch(0.22 0 0);
-  --color-color-destructive-hover: var(--color-destructive-hover);
+/* Force light mode variables and override any dark mode / system preference */
+:root, .dark, :host {
+  color-scheme: light;
+  --background: #F6F8F6;
+  --foreground: #242924;
+  --card: #FFFFFF;
+  --card-foreground: #242924;
+  --popover: #FFFFFF;
+  --popover-foreground: #242924;
+  --primary: #527A5B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EEF2EF;
+  --secondary-foreground: #242924;
+  --muted: #EEF2EF;
+  --muted-foreground: #737D76;
+  --accent: #F0F5F1;
+  --accent-foreground: #242924;
+  --destructive: #EF4444;
+  --border: #DCE4DD;
+  --input: #FFFFFF;
+  --ring: #527A5B;
+  --radius: 0.75rem;
 }
 
-:root {
-  --background: #edf2f7;
-  --foreground: #0f172a;
-  --card: #f0f4f8;
-  --card-foreground: #0f172a;
-  --popover: #f0f4f8;
-  --popover-foreground: #0f172a;
-  --primary: #0f766e;
-  --primary-foreground: #ffffff;
-  --secondary: #e2e8f0;
-  --secondary-foreground: #0f172a;
-  --muted: #e2e8f0;
-  --muted-foreground: #64748b;
-  --accent: #e2e8f0;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
-  --border: #cbd5e1;
-  --input: #e2e8f0;
-  --ring: #0f766e;
-  --radius: 0.75rem;
+@media (prefers-color-scheme: dark) {
+  :root, .dark {
+    color-scheme: light !important;
+    --background: #F6F8F6 !important;
+    --foreground: #242924 !important;
+    --card: #FFFFFF !important;
+    --card-foreground: #242924 !important;
+    --popover: #FFFFFF !important;
+    --popover-foreground: #242924 !important;
+    --primary: #527A5B !important;
+    --primary-foreground: #FFFFFF !important;
+    --secondary: #EEF2EF !important;
+    --secondary-foreground: #242924 !important;
+    --muted: #EEF2EF !important;
+    --muted-foreground: #737D76 !important;
+    --accent: #F0F5F1 !important;
+    --accent-foreground: #242924 !important;
+    --border: #DCE4DD !important;
+    --input: #FFFFFF !important;
+    --ring: #527A5B !important;
+  }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border, #DCE4DD);
+    outline-color: rgba(82, 122, 91, 0.5);
   }
   body {
-    background-color: #edf2f7;
-    color: #0f172a;
+    background-color: #F6F8F6;
+    color: #242924;
     font-family: var(--font-sans);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
@@ -119,13 +64,13 @@
 
 @utility focus-ring {
   &:focus-visible {
-    @apply ring-[3px] ring-teal-600/80 outline-none;
+    @apply ring-[3px] ring-[#527A5B]/80 outline-none;
   }
 }
 
 @utility focus-ring-within {
   &:has(:focus-visible) {
-    @apply ring-[3px] ring-teal-600/80 outline-none;
+    @apply ring-[3px] ring-[#527A5B]/80 outline-none;
   }
 }
 
@@ -134,45 +79,47 @@
 }
 
 @utility neumo-card {
-  background-color: #f0f4f8;
-  box-shadow: 6px 6px 14px rgba(163, 177, 198, 0.55), -6px -6px 14px rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  border: 1px solid #DCE4DD;
   border-radius: 1rem;
 }
 
 @utility neumo-card-pressed {
-  background-color: #ebf0f5;
-  box-shadow: inset 4px 4px 8px rgba(163, 177, 198, 0.45), inset -4px -4px 8px rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(203, 213, 225, 0.6);
+  background-color: #EEF2EF;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #DCE4DD;
   border-radius: 1rem;
 }
 
 @utility neumo-inset {
-  background-color: #e6edf4;
-  box-shadow: inset 3px 3px 6px rgba(163, 177, 198, 0.45), inset -3px -3px 6px rgba(255, 255, 255, 0.9);
-  border: 1px solid #cbd5e1;
+  background-color: #EEF2EF;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #DCE4DD;
   border-radius: 0.75rem;
 }
 
 @utility neumo-button {
-  background-color: #f0f4f8;
-  box-shadow: 4px 4px 10px rgba(163, 177, 198, 0.5), -4px -4px 10px rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background-color: #EEF2EF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid #DCE4DD;
   border-radius: 0.75rem;
   transition: all 150ms ease-out;
+  color: #242924;
   &:hover {
-    box-shadow: 5px 5px 12px rgba(163, 177, 198, 0.6), -5px -5px 12px rgba(255, 255, 255, 0.9);
+    background-color: #F0F5F1;
+    border-color: #527A5B;
   }
   &:active {
-    box-shadow: inset 2px 2px 5px rgba(163, 177, 198, 0.5), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+    background-color: #E5F3E8;
     transform: scale(0.98);
   }
 }
 
 @utility neumo-header {
-  @sticky top-0 z-25 bg-[#edf2f7]/90 backdrop-blur-md border-b border-slate-300/60 shadow-[0_4px_12px_rgba(163,177,198,0.25)];
+  @sticky top-0 z-25 bg-[#F6F8F6]/90 backdrop-blur-md border-b border-[#DCE4DD] shadow-[0_4px_12px_rgba(0,0,0,0.03)];
 }
 
 @utility neumo-nav {
-  @fixed bottom-0 left-0 right-0 z-30 bg-[#edf2f7]/95 backdrop-blur-md border-t border-slate-300/60 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(163,177,198,0.3)];
+  @fixed bottom-0 left-0 right-0 z-30 bg-[#F6F8F6]/95 backdrop-blur-md border-t border-[#DCE4DD] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(0,0,0,0.04)];
 }

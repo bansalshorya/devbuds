@@ -5,8 +5,9 @@ import { getCurrentUser } from "@/server/auth/session";
 import { getMentorStudents, type StudentRow } from "@/server/alerts/attention";
 import { formatDate } from "@/lib/dates";
 import { LogoutButton } from "@/components/LogoutButton";
-import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, ShieldAlert, ArrowUpDown, X, Filter } from "lucide-react";
+import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, ShieldAlert, X, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MentorPage({
   searchParams,
@@ -15,10 +16,10 @@ export default function MentorPage({
 }) {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-[#edf2f7] p-4">
-        <div className="flex items-center gap-3 rounded-2xl neumo-card px-6 py-4">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-700 border-t-transparent" />
-          <p className="text-base text-slate-700 font-semibold">Loading mentor dashboard...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#F6F8F6] text-[#242924] p-4">
+        <div className="flex items-center gap-3 rounded-2xl neumo-card px-6 py-4 bg-[#FFFFFF] border-[#DCE4DD]">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#527A5B] border-t-transparent" />
+          <p className="text-base text-[#242924] font-semibold">Loading mentor dashboard...</p>
         </div>
       </div>
     }>
@@ -27,11 +28,11 @@ export default function MentorPage({
   );
 }
 
-const DOT = { high: "bg-red-600", medium: "bg-amber-500", low: "bg-slate-400" } as const;
+const DOT = { high: "bg-red-600", medium: "bg-amber-500", low: "bg-[#737D76]" } as const;
 const PRIORITY_BADGE = {
-  high: "bg-red-100 text-red-800 border-red-300 font-bold",
-  medium: "bg-amber-100 text-amber-900 border-amber-300 font-semibold",
-  low: "bg-slate-200 text-slate-800 border-slate-300 font-medium",
+  high: "bg-red-50 text-red-800 border-red-200 font-bold",
+  medium: "bg-amber-50 text-amber-900 border-amber-200 font-semibold",
+  low: "bg-[#EEF2EF] text-[#5F6962] border-[#DCE4DD] font-medium",
 } as const;
 
 function Row({ r }: { r: StudentRow }) {
@@ -39,20 +40,20 @@ function Row({ r }: { r: StudentRow }) {
     (a, b) => ["low", "medium", "high"].indexOf(b.severity) - ["low", "medium", "high"].indexOf(a.severity)
   )[0];
   const dot = strongest ? DOT[strongest.severity] : "bg-emerald-600";
-  const badgeStyle = strongest ? PRIORITY_BADGE[strongest.severity] : "bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold";
+  const badgeStyle = strongest ? PRIORITY_BADGE[strongest.severity] : "bg-emerald-50 text-emerald-800 border-emerald-200 font-semibold";
 
   return (
     <li>
       <Link
         href={`/mentor/students/${r.studentId}`}
-        className="flex min-h-[58px] items-center gap-3.5 rounded-xl neumo-card px-4 py-3.5 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.65),-8px_-8px_18px_rgba(255,255,255,0.9)] active:scale-[0.99] transition-[transform,box-shadow] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-teal-700 group"
+        className="flex min-h-[58px] items-center gap-3.5 rounded-xl neumo-card px-4 py-3.5 bg-[#FFFFFF] hover:bg-[#F0F5F1] hover:border-[#527A5B] active:scale-[0.99] transition-[transform,box-shadow,background-color] duration-150 ease-out group"
       >
         <span className={`h-3.5 w-3.5 shrink-0 rounded-full shadow-xs ${dot}`} aria-hidden />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-base font-bold text-slate-900 group-hover:text-teal-900 transition-colors truncate">{r.name}</span>
+            <span className="text-base font-bold text-[#242924] group-hover:text-[#527A5B] transition-colors truncate">{r.name}</span>
             {r.rollNo && (
-              <span className="text-xs font-mono font-semibold text-slate-600 bg-[#e2e8f0] px-2 py-0.5 rounded-md border border-slate-300/60">
+              <span className="text-xs font-mono font-semibold text-[#5F6962] bg-[#EEF2EF] px-2 py-0.5 rounded-md border border-[#DCE4DD]">
                 {r.rollNo}
               </span>
             )}
@@ -62,17 +63,17 @@ function Row({ r }: { r: StudentRow }) {
               </span>
             )}
           </div>
-          <p className="text-xs sm:text-sm text-slate-600 truncate mt-1 font-medium">
+          <p className="text-xs sm:text-sm text-[#5F6962] truncate mt-1 font-medium">
             {strongest ? strongest.reason : "No concerns this week — meeting benchmarks"}
             {r.alerts.length > 1 ? ` (+${r.alerts.length - 1} more)` : ""}
           </p>
         </div>
         <div className="shrink-0 text-right hidden sm:block">
-          <span className="block text-xs font-bold text-slate-700">
+          <span className="block text-xs font-bold text-[#5F6962]">
             {r.lastMet ? `Met ${formatDate(r.lastMet)}` : "Not met yet"}
           </span>
         </div>
-        <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-teal-700 group-hover:translate-x-1 transition-transform shrink-0" />
+        <ChevronRight className="h-4 w-4 text-[#737D76] group-hover:text-[#527A5B] group-hover:translate-x-1 transition-transform shrink-0" />
       </Link>
     </li>
   );
@@ -157,19 +158,19 @@ async function MentorHome({
   };
 
   return (
-    <div className="min-h-screen pb-28 bg-[#edf2f7]">
+    <div className="min-h-screen pb-28 bg-[#F6F8F6] text-[#242924]">
       {/* Header */}
-      <header className="sticky top-0 z-25 bg-[#edf2f7]/95 backdrop-blur-md border-b border-slate-300/70 px-4 py-4 sm:px-8 shadow-[0_4px_12px_rgba(163,177,198,0.25)] flex items-center justify-between">
+      <header className="sticky top-0 z-25 bg-[#F6F8F6]/95 backdrop-blur-md border-b border-[#DCE4DD] px-4 py-4 sm:px-8 shadow-[0_4px_12px_rgba(0,0,0,0.03)] flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-xl font-extrabold text-[#242924] tracking-tight">
               {tab === "mentees" ? "All Mentees" : tab === "followups" ? "Follow-ups" : "This Week"}
             </h1>
-            <Badge variant="secondary" className="bg-teal-100 text-teal-900 border-teal-300 text-[11px] font-bold">
+            <Badge variant="secondary" className="bg-[#EEF2EF] text-[#527A5B] border-[#DCE4DD] text-[11px] font-bold">
               Mentor Portal
             </Badge>
           </div>
-          <p className="text-xs text-slate-600 mt-0.5 font-semibold">
+          <p className="text-xs text-[#5F6962] mt-0.5 font-semibold">
             {user.name} · {tab === "mentees" ? `${rows.length} assigned students` : tab === "followups" ? `${allFollowUps.length} pending commitments` : `${rows.length} total mentees`}
           </p>
         </div>
@@ -184,32 +185,32 @@ async function MentorHome({
               <Link
                 href={filter === "needs_action" ? createQueryString({ filter: "all" }) : createQueryString({ filter: "needs_action" })}
                 aria-pressed={filter === "needs_action"}
-                className={`neumo-card p-4.5 bg-gradient-to-br from-red-50/90 to-[#f0f4f8] border-red-300 flex items-center gap-3.5 transition-all hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus-visible:ring-2 focus-visible:ring-red-600 ${
-                  filter === "needs_action" ? "neumo-card-pressed ring-2 ring-red-600 shadow-inner bg-red-100/60" : ""
+                className={`neumo-card p-4.5 bg-gradient-to-br from-[#FFFFFF] to-red-50/50 border-red-200 flex items-center gap-3.5 transition-all hover:border-red-400 ${
+                  filter === "needs_action" ? "bg-[#E5F3E8] ring-2 ring-red-500 shadow-inner" : ""
                 }`}
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-700 shrink-0 shadow-inner">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-700 shrink-0 shadow-inner border border-red-200">
                   <ShieldAlert className="h-6 w-6" />
                 </div>
                 <div>
                   <p className="text-xs text-red-800 font-extrabold tracking-wide uppercase">Needs Action</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-red-950 mt-0.5">{needs.length}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-[#242924] mt-0.5">{needs.length}</p>
                 </div>
               </Link>
 
               <Link
                 href={filter === "on_track" ? createQueryString({ filter: "all" }) : createQueryString({ filter: "on_track" })}
                 aria-pressed={filter === "on_track"}
-                className={`neumo-card p-4.5 bg-gradient-to-br from-emerald-50/90 to-[#f0f4f8] border-emerald-300 flex items-center gap-3.5 transition-all hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus-visible:ring-2 focus-visible:ring-emerald-600 ${
-                  filter === "on_track" ? "neumo-card-pressed ring-2 ring-emerald-600 shadow-inner bg-emerald-100/60" : ""
+                className={`neumo-card p-4.5 bg-gradient-to-br from-[#FFFFFF] to-emerald-50/50 border-emerald-200 flex items-center gap-3.5 transition-all hover:border-emerald-400 ${
+                  filter === "on_track" ? "bg-[#E5F3E8] ring-2 ring-emerald-500 shadow-inner" : ""
                 }`}
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shrink-0 shadow-inner">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shrink-0 shadow-inner border border-emerald-200">
                   <CheckCircle2 className="h-6 w-6" />
                 </div>
                 <div>
                   <p className="text-xs text-emerald-800 font-extrabold tracking-wide uppercase">On Track</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-950 mt-0.5">{others.length}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-[#242924] mt-0.5">{others.length}</p>
                 </div>
               </Link>
             </div>
@@ -217,15 +218,15 @@ async function MentorHome({
         )}
 
         {tab !== "followups" && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#e6edf4] p-3.5 rounded-2xl neumo-inset border border-slate-300">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#EEF2EF] p-3.5 rounded-2xl neumo-inset border border-[#DCE4DD]">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
-                <Filter className="h-3.5 w-3.5 text-teal-700" /> Filter & Sort:
+              <span className="text-xs font-bold text-[#5F6962] uppercase tracking-wide flex items-center gap-1">
+                <Filter className="h-3.5 w-3.5 text-[#527A5B]" /> Filter & Sort:
               </span>
               {filter !== "all" && (
                 <Link
                   href={createQueryString({ filter: "all" })}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-teal-900 bg-teal-100 px-2.5 py-1 rounded-full border border-teal-300 shadow-2xs hover:bg-teal-200 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#527A5B] bg-[#E5F3E8] px-2.5 py-1 rounded-full border border-[#DCE4DD] hover:bg-[#DCE4DD] transition-colors"
                 >
                   {filter === "needs_action" ? "Needs Action" : "On Track"} <X className="h-3 w-3" />
                 </Link>
@@ -236,7 +237,7 @@ async function MentorHome({
               <Link
                 href={createQueryString({ sort: "priority_desc" })}
                 className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
-                  sort === "priority_desc" ? "bg-teal-700 text-white shadow-xs" : "bg-[#f0f4f8] text-slate-700 hover:bg-slate-200 border border-slate-300/70"
+                  sort === "priority_desc" ? "bg-[#527A5B] text-[#FFFFFF] shadow-xs" : "bg-[#FFFFFF] text-[#5F6962] hover:text-[#242924] border border-[#DCE4DD]"
                 }`}
               >
                 Priority (High)
@@ -244,7 +245,7 @@ async function MentorHome({
               <Link
                 href={createQueryString({ sort: "name_asc" })}
                 className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
-                  sort === "name_asc" ? "bg-teal-700 text-white shadow-xs" : "bg-[#f0f4f8] text-slate-700 hover:bg-slate-200 border border-slate-300/70"
+                  sort === "name_asc" ? "bg-[#527A5B] text-[#FFFFFF] shadow-xs" : "bg-[#FFFFFF] text-[#5F6962] hover:text-[#242924] border border-[#DCE4DD]"
                 }`}
               >
                 Name (A–Z)
@@ -252,7 +253,7 @@ async function MentorHome({
               <Link
                 href={createQueryString({ sort: "met_desc" })}
                 className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
-                  sort === "met_desc" ? "bg-teal-700 text-white shadow-xs" : "bg-[#f0f4f8] text-slate-700 hover:bg-slate-200 border border-slate-300/70"
+                  sort === "met_desc" ? "bg-[#527A5B] text-[#FFFFFF] shadow-xs" : "bg-[#FFFFFF] text-[#5F6962] hover:text-[#242924] border border-[#DCE4DD]"
                 }`}
               >
                 Recent Meeting
@@ -264,13 +265,13 @@ async function MentorHome({
         {tab === "week" && (
           <section className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962] flex items-center gap-1.5">
                 {filter === "needs_action" ? (
                   <ShieldAlert className="h-4 w-4 text-red-600" />
                 ) : filter === "on_track" ? (
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                 ) : (
-                  <Users className="h-4 w-4 text-teal-700" />
+                  <Users className="h-4 w-4 text-[#527A5B]" />
                 )}
                 {filter === "needs_action"
                   ? `Students Needing Attention (${displayedRows.length})`
@@ -279,7 +280,7 @@ async function MentorHome({
                   : `Active Students Roster (${displayedRows.length})`}
               </h2>
               {filter !== "all" && (
-                <Link href="/mentor" className="text-xs font-bold text-teal-700 hover:underline flex items-center gap-1">
+                <Link href="/mentor" className="text-xs font-bold text-[#527A5B] hover:underline flex items-center gap-1">
                   Clear filter <X className="h-3 w-3" />
                 </Link>
               )}
@@ -287,10 +288,10 @@ async function MentorHome({
 
             {displayedRows.length === 0 ? (
               <div className="neumo-card p-8 text-center space-y-3">
-                <CheckCircle2 className="mx-auto h-8 w-8 text-teal-700" />
-                <p className="text-sm font-bold text-slate-900">No students match the selected filter.</p>
-                <p className="text-xs text-slate-600 font-medium">Try clearing your filter to view all assigned mentees.</p>
-                <Link href="/mentor" className="inline-block px-4 py-2 rounded-xl bg-teal-700 text-white font-bold text-xs shadow-xs hover:bg-teal-800 transition-colors">
+                <CheckCircle2 className="mx-auto h-8 w-8 text-[#527A5B]" />
+                <p className="text-sm font-bold text-[#242924]">No students match the selected filter.</p>
+                <p className="text-xs text-[#5F6962] font-medium">Try clearing your filter to view all assigned mentees.</p>
+                <Link href="/mentor" className="inline-block px-4 py-2 rounded-xl bg-[#527A5B] text-[#FFFFFF] font-bold text-xs shadow-xs hover:bg-[#42664A] transition-colors">
                   Reset View
                 </Link>
               </div>
@@ -307,13 +308,13 @@ async function MentorHome({
         {tab === "mentees" && (
           <section className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962]">
                 Assigned Students ({displayedRows.length})
               </h2>
-              <span className="text-[11px] text-slate-600 font-bold">Full active roster</span>
+              <span className="text-[11px] text-[#5F6962] font-bold">Full active roster</span>
             </div>
             {displayedRows.length === 0 ? (
-              <div className="neumo-card p-8 text-center text-sm text-slate-700 font-semibold">
+              <div className="neumo-card p-8 text-center text-sm text-[#5F6962] font-semibold">
                 No mentees match the selected filter.
               </div>
             ) : (
@@ -329,18 +330,18 @@ async function MentorHome({
         {tab === "followups" && (
           <section className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-[#5F6962]">
                 Open Follow-up Actions ({allFollowUps.length})
               </h2>
-              <span className="text-[11px] text-slate-600 font-bold">Due soonest</span>
+              <span className="text-[11px] text-[#5F6962] font-bold">Due soonest</span>
             </div>
             {allFollowUps.length === 0 ? (
               <div className="neumo-card py-12 text-center px-4">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mb-3 shadow-inner">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-800 mb-3 shadow-inner border border-emerald-200">
                   <CheckCircle2 className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-bold text-slate-900">No pending follow-up actions.</p>
-                <p className="text-xs text-slate-600 mt-1 font-semibold">All mentoring commitments have been completed!</p>
+                <p className="text-sm font-bold text-[#242924]">No pending follow-up actions.</p>
+                <p className="text-xs text-[#5F6962] mt-1 font-semibold">All mentoring commitments have been completed!</p>
               </div>
             ) : (
               <ul className="space-y-3.5">
@@ -348,7 +349,7 @@ async function MentorHome({
                   <li key={f.id}>
                     <Link
                       href={`/mentor/students/${f.studentId}`}
-                      className="block neumo-card p-5 border-amber-200 bg-gradient-to-br from-[#f0f4f8] to-amber-50/50 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.65)] transition-all group"
+                      className="block neumo-card p-5 border-amber-200 bg-gradient-to-br from-[#FFFFFF] to-amber-50/40 hover:border-amber-400 transition-all group"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-extrabold text-amber-900 group-hover:text-amber-950 flex items-center gap-1.5">
@@ -358,7 +359,7 @@ async function MentorHome({
                           <Calendar className="h-3.5 w-3.5" /> Due {formatDate(new Date(f.dueDate))}
                         </span>
                       </div>
-                      <p className="mt-3 text-base font-bold text-slate-900 leading-snug">{f.action}</p>
+                      <p className="mt-3 text-base font-bold text-[#242924] leading-snug">{f.action}</p>
                     </Link>
                   </li>
                 ))}
@@ -369,12 +370,12 @@ async function MentorHome({
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav aria-label="Mentor Navigation" className="fixed bottom-0 left-0 right-0 z-30 bg-[#edf2f7]/95 backdrop-blur-md border-t border-slate-300/70 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(163,177,198,0.3)]">
+      <nav aria-label="Mentor Navigation" className="fixed bottom-0 left-0 right-0 z-30 bg-[#F6F8F6]/95 backdrop-blur-md border-t border-[#DCE4DD] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
         <div className="mx-auto flex max-w-md items-center justify-around py-2 px-4">
           <Link
             href="/mentor"
             className={`flex min-h-[48px] min-w-[56px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-              tab === "week" ? "text-teal-900 font-extrabold neumo-card-pressed shadow-inner" : "text-slate-600 hover:text-slate-900 font-semibold"
+              tab === "week" ? "bg-[#E5F3E8] text-[#527A5B] font-extrabold shadow-xs" : "text-[#5F6962] hover:text-[#242924] font-semibold"
             }`}
           >
             <Calendar className="h-5 w-5" />
@@ -383,7 +384,7 @@ async function MentorHome({
           <Link
             href="/mentor?tab=mentees"
             className={`flex min-h-[48px] min-w-[56px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-              tab === "mentees" ? "text-teal-900 font-extrabold neumo-card-pressed shadow-inner" : "text-slate-600 hover:text-slate-900 font-semibold"
+              tab === "mentees" ? "bg-[#E5F3E8] text-[#527A5B] font-extrabold shadow-xs" : "text-[#5F6962] hover:text-[#242924] font-semibold"
             }`}
           >
             <Users className="h-5 w-5" />
@@ -392,7 +393,7 @@ async function MentorHome({
           <Link
             href="/mentor?tab=followups"
             className={`flex min-h-[48px] min-w-[56px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-              tab === "followups" ? "text-teal-900 font-extrabold neumo-card-pressed shadow-inner" : "text-slate-600 hover:text-slate-900 font-semibold"
+              tab === "followups" ? "bg-[#E5F3E8] text-[#527A5B] font-extrabold shadow-xs" : "text-[#5F6962] hover:text-[#242924] font-semibold"
             }`}
           >
             <UserCheck className="h-5 w-5" />

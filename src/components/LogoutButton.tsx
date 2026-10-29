@@ -13,7 +13,7 @@ export function LogoutButton() {
         router.push("/login");
         router.refresh();
       }}
-      className="h-10 px-3 text-sm font-semibold text-slate-600 hover:text-slate-900 whitespace-nowrap shrink-0 rounded-xl"
+      className="h-10 px-3 text-sm font-semibold text-[#5F6962] hover:text-[#242924] hover:bg-[#F0F5F1] whitespace-nowrap shrink-0 rounded-xl transition-colors"
     >
       Log out
     </Button>
