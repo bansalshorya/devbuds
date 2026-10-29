@@ -88,37 +88,37 @@ async function Coverage() {
         </Card>
 
         {/* 3 Metric Cards */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <Card className="p-6 bg-white shadow-xs rounded-2xl border border-slate-200/80">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card className="p-4 sm:p-5 bg-white shadow-xs rounded-2xl border border-slate-200/80 !gap-0">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Students Reached</span>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 shadow-2xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700 shadow-2xs shrink-0">
                 <Users className="h-5 w-5" />
               </div>
             </div>
-            <p className="mt-4 text-3xl font-extrabold text-slate-900">{c.studentsReached}</p>
+            <p className="mt-2 text-3xl font-extrabold text-slate-900">{c.studentsReached}</p>
             <p className="mt-1 text-xs text-slate-500 font-medium">out of {c.totalStudents} total department students</p>
           </Card>
 
-          <Card className="p-6 bg-white shadow-xs rounded-2xl border border-slate-200/80">
+          <Card className="p-4 sm:p-5 bg-white shadow-xs rounded-2xl border border-slate-200/80 !gap-0">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Meetings Logged</span>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 shadow-2xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 shadow-2xs shrink-0">
                 <CheckCircle2 className="h-5 w-5" />
               </div>
             </div>
-            <p className="mt-4 text-3xl font-extrabold text-slate-900">{c.meetingsLogged}</p>
+            <p className="mt-2 text-3xl font-extrabold text-slate-900">{c.meetingsLogged}</p>
             <p className="mt-1 text-xs text-slate-500 font-medium">sessions recorded in the last {c.periodDays} days</p>
           </Card>
 
-          <Card className="p-6 bg-white shadow-xs rounded-2xl border border-slate-200/80">
+          <Card className="p-4 sm:p-5 bg-white shadow-xs rounded-2xl border border-slate-200/80 !gap-0">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Follow-Ups Pending</span>
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 shadow-2xs">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700 shadow-2xs shrink-0">
                 <Clock className="h-5 w-5" />
               </div>
             </div>
-            <p className="mt-4 text-3xl font-extrabold text-slate-900">{c.pendingFollowUps}</p>
+            <p className="mt-2 text-3xl font-extrabold text-slate-900">{c.pendingFollowUps}</p>
             <p className="mt-1 text-xs text-slate-500 font-medium">action items awaiting completion</p>
           </Card>
         </div>

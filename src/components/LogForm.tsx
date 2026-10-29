@@ -125,6 +125,7 @@ export function LogForm({ studentId }: { studentId: string }) {
       )}
 
       <SmoothButton
+        type="submit"
         disabled={status === "saving"}
         loading={status === "saving"}
         className="h-12 w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-base font-semibold text-white shadow-md shadow-teal-700/20 transition-all mt-2"
