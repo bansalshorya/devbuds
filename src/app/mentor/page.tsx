@@ -5,20 +5,20 @@ import { getCurrentUser } from "@/server/auth/session";
 import { getMentorStudents, type StudentRow } from "@/server/alerts/attention";
 import { formatDate } from "@/lib/dates";
 import { LogoutButton } from "@/components/LogoutButton";
-import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, Sparkles } from "lucide-react";
+import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, ShieldAlert, ArrowUpDown, X, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function MentorPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; filter?: string; sort?: string }>;
 }) {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-        <div className="flex items-center gap-3 rounded-2xl bg-white px-6 py-4 shadow-sm border border-slate-200">
+      <div className="flex min-h-screen items-center justify-center bg-[#edf2f7] p-4">
+        <div className="flex items-center gap-3 rounded-2xl neumo-card px-6 py-4">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-700 border-t-transparent" />
-          <p className="text-base text-slate-700 font-medium">Loading mentor dashboard...</p>
+          <p className="text-base text-slate-700 font-semibold">Loading mentor dashboard...</p>
         </div>
       </div>
     }>
@@ -29,9 +29,9 @@ export default function MentorPage({
 
 const DOT = { high: "bg-red-600", medium: "bg-amber-500", low: "bg-slate-400" } as const;
 const PRIORITY_BADGE = {
-  high: "bg-red-50 text-red-700 border-red-200",
-  medium: "bg-amber-50 text-amber-700 border-amber-200",
-  low: "bg-slate-100 text-slate-700 border-slate-200",
+  high: "bg-red-100 text-red-800 border-red-300 font-bold",
+  medium: "bg-amber-100 text-amber-900 border-amber-300 font-semibold",
+  low: "bg-slate-200 text-slate-800 border-slate-300 font-medium",
 } as const;
 
 function Row({ r }: { r: StudentRow }) {
@@ -39,188 +39,326 @@ function Row({ r }: { r: StudentRow }) {
     (a, b) => ["low", "medium", "high"].indexOf(b.severity) - ["low", "medium", "high"].indexOf(a.severity)
   )[0];
   const dot = strongest ? DOT[strongest.severity] : "bg-emerald-600";
-  const badgeStyle = strongest ? PRIORITY_BADGE[strongest.severity] : "bg-emerald-50 text-emerald-700 border-emerald-200";
+  const badgeStyle = strongest ? PRIORITY_BADGE[strongest.severity] : "bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold";
 
   return (
     <li>
       <Link
         href={`/mentor/students/${r.studentId}`}
-        className="flex min-h-[52px] items-center gap-3.5 border-b border-slate-100 bg-white px-4 py-3.5 hover:bg-teal-50/30 active:bg-slate-50 transition-all group"
+        className="flex min-h-[58px] items-center gap-3.5 rounded-xl neumo-card px-4 py-3.5 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.65),-8px_-8px_18px_rgba(255,255,255,0.9)] active:scale-[0.99] transition-[transform,box-shadow] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-teal-700 group"
       >
-        <span className={`h-3 w-3 shrink-0 rounded-full shadow-2xs ${dot}`} aria-hidden />
+        <span className={`h-3.5 w-3.5 shrink-0 rounded-full shadow-xs ${dot}`} aria-hidden />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-base font-semibold text-slate-900 group-hover:text-teal-900 transition-colors truncate">{r.name}</span>
+            <span className="text-base font-bold text-slate-900 group-hover:text-teal-900 transition-colors truncate">{r.name}</span>
+            {r.rollNo && (
+              <span className="text-xs font-mono font-semibold text-slate-600 bg-[#e2e8f0] px-2 py-0.5 rounded-md border border-slate-300/60">
+                {r.rollNo}
+              </span>
+            )}
             {strongest && (
-              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyle}`}>
+              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-wider ${badgeStyle}`}>
                 {strongest.severity}
               </span>
             )}
           </div>
-          <p className="text-xs sm:text-sm text-slate-600 truncate mt-0.5">
-            {strongest ? strongest.reason : "No concerns this week"}
+          <p className="text-xs sm:text-sm text-slate-600 truncate mt-1 font-medium">
+            {strongest ? strongest.reason : "No concerns this week — meeting benchmarks"}
             {r.alerts.length > 1 ? ` (+${r.alerts.length - 1} more)` : ""}
           </p>
         </div>
-        <div className="shrink-0 text-right">
-          <span className="block text-xs font-medium text-slate-500">
+        <div className="shrink-0 text-right hidden sm:block">
+          <span className="block text-xs font-bold text-slate-700">
             {r.lastMet ? `Met ${formatDate(r.lastMet)}` : "Not met yet"}
           </span>
         </div>
-        <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-teal-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+        <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-teal-700 group-hover:translate-x-1 transition-transform shrink-0" />
       </Link>
     </li>
   );
 }
 
+function getHighestSeverityScore(r: StudentRow): number {
+  const severities = r.alerts.map((a) => a.severity);
+  if (severities.includes("high")) return 3;
+  if (severities.includes("medium")) return 2;
+  if (severities.includes("low")) return 1;
+  return 0;
+}
+
 async function MentorHome({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; filter?: string; sort?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user || user.role !== "MENTOR") redirect("/login");
   const params = await searchParams;
   const tab = params.tab ?? "week";
+  const filter = params.filter ?? "all";
+  const sort = params.sort ?? "priority_desc";
 
   const rows = await getMentorStudents(user.id);
   const needs = rows.filter((r) => r.alerts.length > 0);
   const others = rows.filter((r) => r.alerts.length === 0);
+
+  // Filter logic
+  let displayedRows = rows;
+  if (tab === "week" || tab === "mentees") {
+    if (filter === "needs_action") {
+      displayedRows = needs;
+    } else if (filter === "on_track") {
+      displayedRows = others;
+    }
+  }
+
+  // Sorting logic
+  displayedRows = [...displayedRows].sort((a, b) => {
+    switch (sort) {
+      case "priority_desc":
+        return getHighestSeverityScore(b) - getHighestSeverityScore(a);
+      case "priority_asc":
+        return getHighestSeverityScore(a) - getHighestSeverityScore(b);
+      case "name_asc":
+        return a.name.localeCompare(b.name);
+      case "name_desc":
+        return b.name.localeCompare(a.name);
+      case "met_desc": {
+        const timeA = a.lastMet ? a.lastMet.getTime() : 0;
+        const timeB = b.lastMet ? b.lastMet.getTime() : 0;
+        return timeB - timeA;
+      }
+      case "met_asc": {
+        const timeA = a.lastMet ? a.lastMet.getTime() : 0;
+        const timeB = b.lastMet ? b.lastMet.getTime() : 0;
+        if (!a.lastMet && b.lastMet) return 1;
+        if (a.lastMet && !b.lastMet) return -1;
+        return timeA - timeB;
+      }
+      default:
+        return 0;
+    }
+  });
 
   const allFollowUps = rows
     .flatMap((r) => r.followUps.map((f) => ({ ...f, studentName: r.name, studentRollNo: r.rollNo, studentId: r.studentId })))
     .filter((f) => !f.completedAt)
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
+  const createQueryString = (newParams: Record<string, string | undefined>) => {
+    const p = new URLSearchParams();
+    if (tab !== "week") p.set("tab", tab);
+    const targetFilter = newParams.filter !== undefined ? newParams.filter : filter;
+    if (targetFilter !== "all") p.set("filter", targetFilter);
+    const targetSort = newParams.sort !== undefined ? newParams.sort : sort;
+    if (targetSort !== "priority_desc") p.set("sort", targetSort);
+    const str = p.toString();
+    return str ? `/mentor?${str}` : "/mentor";
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50/70 pb-28">
-      {/* Mobile-first header */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200/80 bg-white/90 backdrop-blur-md px-4 py-3.5 sm:px-6 shadow-xs">
+    <div className="min-h-screen pb-28 bg-[#edf2f7]">
+      {/* Header */}
+      <header className="sticky top-0 z-25 bg-[#edf2f7]/95 backdrop-blur-md border-b border-slate-300/70 px-4 py-4 sm:px-8 shadow-[0_4px_12px_rgba(163,177,198,0.25)] flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-slate-900">
+            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">
               {tab === "mentees" ? "All Mentees" : tab === "followups" ? "Follow-ups" : "This Week"}
             </h1>
-            <Badge variant="secondary" className="bg-teal-50 text-teal-700 border-teal-200 text-[10px] font-semibold">
+            <Badge variant="secondary" className="bg-teal-100 text-teal-900 border-teal-300 text-[11px] font-bold">
               Mentor Portal
             </Badge>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium">
-            {user.name} · {tab === "mentees" ? `${rows.length} mentees assigned` : tab === "followups" ? `${allFollowUps.length} pending commitments` : `${rows.length} mentees total`}
+          <p className="text-xs text-slate-600 mt-0.5 font-semibold">
+            {user.name} · {tab === "mentees" ? `${rows.length} assigned students` : tab === "followups" ? `${allFollowUps.length} pending commitments` : `${rows.length} total mentees`}
           </p>
         </div>
         <LogoutButton />
       </header>
 
-      <main className="mx-auto max-w-md sm:max-w-xl pb-6">
+      <main className="mx-auto max-w-md sm:max-w-2xl px-4 sm:px-6 pt-6 space-y-6">
         {tab === "week" && (
           <>
-            {/* Quick Summary Counts Bar */}
-            <div className="grid grid-cols-2 gap-3 px-4 pt-5">
-              <div className="rounded-2xl border border-red-200 bg-gradient-to-br from-red-50/80 to-white p-4 shadow-xs flex items-center gap-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-700 shrink-0 shadow-2xs">
-                  <AlertTriangle className="h-5 w-5" />
+            {/* Quick Summary Cards (Interactive Filters) */}
+            <div className="grid grid-cols-2 gap-4">
+              <Link
+                href={filter === "needs_action" ? createQueryString({ filter: "all" }) : createQueryString({ filter: "needs_action" })}
+                aria-pressed={filter === "needs_action"}
+                className={`neumo-card p-4.5 bg-gradient-to-br from-red-50/90 to-[#f0f4f8] border-red-300 flex items-center gap-3.5 transition-all hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus-visible:ring-2 focus-visible:ring-red-600 ${
+                  filter === "needs_action" ? "neumo-card-pressed ring-2 ring-red-600 shadow-inner bg-red-100/60" : ""
+                }`}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-700 shrink-0 shadow-inner">
+                  <ShieldAlert className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-red-700 font-semibold tracking-wide uppercase">Needs Action</p>
-                  <p className="text-2xl font-extrabold text-red-950 mt-0.5">{needs.length}</p>
+                  <p className="text-xs text-red-800 font-extrabold tracking-wide uppercase">Needs Action</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-red-950 mt-0.5">{needs.length}</p>
                 </div>
-              </div>
-              <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-4 shadow-xs flex items-center gap-3.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shrink-0 shadow-2xs">
-                  <CheckCircle2 className="h-5 w-5" />
+              </Link>
+
+              <Link
+                href={filter === "on_track" ? createQueryString({ filter: "all" }) : createQueryString({ filter: "on_track" })}
+                aria-pressed={filter === "on_track"}
+                className={`neumo-card p-4.5 bg-gradient-to-br from-emerald-50/90 to-[#f0f4f8] border-emerald-300 flex items-center gap-3.5 transition-all hover:shadow-[8px_8px_18px_rgba(163,177,198,0.7)] focus-visible:ring-2 focus-visible:ring-emerald-600 ${
+                  filter === "on_track" ? "neumo-card-pressed ring-2 ring-emerald-600 shadow-inner bg-emerald-100/60" : ""
+                }`}
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shrink-0 shadow-inner">
+                  <CheckCircle2 className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-emerald-700 font-semibold tracking-wide uppercase">On Track</p>
-                  <p className="text-2xl font-extrabold text-emerald-950 mt-0.5">{others.length}</p>
+                  <p className="text-xs text-emerald-800 font-extrabold tracking-wide uppercase">On Track</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-emerald-950 mt-0.5">{others.length}</p>
                 </div>
-              </div>
+              </Link>
             </div>
-
-            {/* Needs a conversation section */}
-            <section className="mt-6">
-              <div className="px-4 pb-2 flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  Needs a conversation ({needs.length})
-                </h2>
-                <span className="text-[11px] text-slate-400 font-medium">Sorted by priority</span>
-              </div>
-              {needs.length === 0 ? (
-                <div className="mx-4 rounded-2xl border border-emerald-200 bg-emerald-50/30 p-5 text-center shadow-2xs">
-                  <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-600 mb-2" />
-                  <p className="text-sm font-semibold text-slate-900">Nobody needs attention this week.</p>
-                  <p className="text-xs text-slate-600 mt-0.5">Great work! All mentees are meeting their benchmarks.</p>
-                </div>
-              ) : (
-                <ul className="border-t border-b border-slate-200/80 bg-white shadow-xs rounded-2xl mx-4 overflow-hidden">{needs.map((r) => <Row key={r.studentId} r={r} />)}</ul>
-              )}
-            </section>
-
-            {/* No concerns section */}
-            <section className="mt-6">
-              <div className="px-4 pb-2 flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  No concerns ({others.length})
-                </h2>
-              </div>
-              <ul className="border-t border-b border-slate-200/80 bg-white shadow-xs rounded-2xl mx-4 overflow-hidden">{others.map((r) => <Row key={r.studentId} r={r} />)}</ul>
-            </section>
           </>
         )}
 
-        {tab === "mentees" && (
-          <section className="mt-5 px-4">
-            <div className="pb-3 flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Assigned Students ({rows.length})
-              </h2>
-              <span className="text-[11px] text-slate-400 font-medium">Full roster</span>
+        {tab !== "followups" && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#e6edf4] p-3.5 rounded-2xl neumo-inset border border-slate-300">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1">
+                <Filter className="h-3.5 w-3.5 text-teal-700" /> Filter & Sort:
+              </span>
+              {filter !== "all" && (
+                <Link
+                  href={createQueryString({ filter: "all" })}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-teal-900 bg-teal-100 px-2.5 py-1 rounded-full border border-teal-300 shadow-2xs hover:bg-teal-200 transition-colors"
+                >
+                  {filter === "needs_action" ? "Needs Action" : "On Track"} <X className="h-3 w-3" />
+                </Link>
+              )}
             </div>
-            {rows.length === 0 ? (
-              <p className="py-6 text-center text-sm text-slate-600 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                No mentees assigned.
-              </p>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link
+                href={createQueryString({ sort: "priority_desc" })}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
+                  sort === "priority_desc" ? "bg-teal-700 text-white shadow-xs" : "bg-[#f0f4f8] text-slate-700 hover:bg-slate-200 border border-slate-300/70"
+                }`}
+              >
+                Priority (High)
+              </Link>
+              <Link
+                href={createQueryString({ sort: "name_asc" })}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
+                  sort === "name_asc" ? "bg-teal-700 text-white shadow-xs" : "bg-[#f0f4f8] text-slate-700 hover:bg-slate-200 border border-slate-300/70"
+                }`}
+              >
+                Name (A–Z)
+              </Link>
+              <Link
+                href={createQueryString({ sort: "met_desc" })}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${
+                  sort === "met_desc" ? "bg-teal-700 text-white shadow-xs" : "bg-[#f0f4f8] text-slate-700 hover:bg-slate-200 border border-slate-300/70"
+                }`}
+              >
+                Recent Meeting
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {tab === "week" && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                {filter === "needs_action" ? (
+                  <ShieldAlert className="h-4 w-4 text-red-600" />
+                ) : filter === "on_track" ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                ) : (
+                  <Users className="h-4 w-4 text-teal-700" />
+                )}
+                {filter === "needs_action"
+                  ? `Students Needing Attention (${displayedRows.length})`
+                  : filter === "on_track"
+                  ? `Students On Track (${displayedRows.length})`
+                  : `Active Students Roster (${displayedRows.length})`}
+              </h2>
+              {filter !== "all" && (
+                <Link href="/mentor" className="text-xs font-bold text-teal-700 hover:underline flex items-center gap-1">
+                  Clear filter <X className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
+
+            {displayedRows.length === 0 ? (
+              <div className="neumo-card p-8 text-center space-y-3">
+                <CheckCircle2 className="mx-auto h-8 w-8 text-teal-700" />
+                <p className="text-sm font-bold text-slate-900">No students match the selected filter.</p>
+                <p className="text-xs text-slate-600 font-medium">Try clearing your filter to view all assigned mentees.</p>
+                <Link href="/mentor" className="inline-block px-4 py-2 rounded-xl bg-teal-700 text-white font-bold text-xs shadow-xs hover:bg-teal-800 transition-colors">
+                  Reset View
+                </Link>
+              </div>
             ) : (
-              <ul className="border border-slate-200/80 bg-white shadow-xs rounded-2xl overflow-hidden">
-                {rows.map((r) => <Row key={r.studentId} r={r} />)}
+              <ul className="space-y-3">
+                {displayedRows.map((r) => (
+                  <Row key={r.studentId} r={r} />
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {tab === "mentees" && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                Assigned Students ({displayedRows.length})
+              </h2>
+              <span className="text-[11px] text-slate-600 font-bold">Full active roster</span>
+            </div>
+            {displayedRows.length === 0 ? (
+              <div className="neumo-card p-8 text-center text-sm text-slate-700 font-semibold">
+                No mentees match the selected filter.
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {displayedRows.map((r) => (
+                  <Row key={r.studentId} r={r} />
+                ))}
               </ul>
             )}
           </section>
         )}
 
         {tab === "followups" && (
-          <section className="mt-5 px-4 space-y-3">
-            <div className="pb-1 flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <section className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
                 Open Follow-up Actions ({allFollowUps.length})
               </h2>
-              <span className="text-[11px] text-slate-400 font-medium">Due soonest</span>
+              <span className="text-[11px] text-slate-600 font-bold">Due soonest</span>
             </div>
             {allFollowUps.length === 0 ? (
-              <div className="py-10 text-center bg-white rounded-2xl border border-slate-200/80 shadow-xs px-4">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3">
+              <div className="neumo-card py-12 text-center px-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 mb-3 shadow-inner">
                   <CheckCircle2 className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-semibold text-slate-900">No pending follow-up actions.</p>
-                <p className="text-xs text-slate-500 mt-1">All commitments have been completed!</p>
+                <p className="text-sm font-bold text-slate-900">No pending follow-up actions.</p>
+                <p className="text-xs text-slate-600 mt-1 font-semibold">All mentoring commitments have been completed!</p>
               </div>
             ) : (
-              <ul className="space-y-3">
+              <ul className="space-y-3.5">
                 {allFollowUps.map((f) => (
                   <li key={f.id}>
                     <Link
                       href={`/mentor/students/${f.studentId}`}
-                      className="block rounded-2xl border border-amber-200/80 bg-gradient-to-br from-white to-amber-50/20 p-4 hover:border-amber-300 hover:shadow-md transition-all shadow-2xs group"
+                      className="block neumo-card p-5 border-amber-200 bg-gradient-to-br from-[#f0f4f8] to-amber-50/50 hover:shadow-[8px_8px_18px_rgba(163,177,198,0.65)] transition-all group"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-amber-900 group-hover:text-amber-950 flex items-center gap-1.5">
-                          <Users className="h-3.5 w-3.5 text-amber-700" /> {f.studentName} ({f.studentRollNo})
+                        <span className="text-xs font-extrabold text-amber-900 group-hover:text-amber-950 flex items-center gap-1.5">
+                          <Users className="h-3.5 w-3.5 text-amber-700" /> {f.studentName} {f.studentRollNo ? `(${f.studentRollNo})` : ""}
                         </span>
-                        <span className="text-xs font-semibold text-amber-800 bg-amber-100/70 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                        <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full flex items-center gap-1 border border-amber-300 shadow-2xs">
                           <Calendar className="h-3.5 w-3.5" /> Due {formatDate(new Date(f.dueDate))}
                         </span>
                       </div>
-                      <p className="mt-2.5 text-base font-semibold text-slate-900 leading-snug">{f.action}</p>
+                      <p className="mt-3 text-base font-bold text-slate-900 leading-snug">{f.action}</p>
                     </Link>
                   </li>
                 ))}
@@ -230,13 +368,13 @@ async function MentorHome({
         )}
       </main>
 
-      {/* Mobile Bottom Navigation Bar with safe-area support */}
-      <nav aria-label="Mentor Navigation" className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200/80 bg-white/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)] shadow-lg">
+      {/* Mobile Bottom Navigation Bar */}
+      <nav aria-label="Mentor Navigation" className="fixed bottom-0 left-0 right-0 z-30 bg-[#edf2f7]/95 backdrop-blur-md border-t border-slate-300/70 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(163,177,198,0.3)]">
         <div className="mx-auto flex max-w-md items-center justify-around py-2 px-4">
           <Link
             href="/mentor"
-            className={`flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-              tab === "week" ? "text-teal-700 font-bold bg-teal-50/80 shadow-2xs" : "text-slate-500 hover:text-slate-900 font-medium"
+            className={`flex min-h-[48px] min-w-[56px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
+              tab === "week" ? "text-teal-900 font-extrabold neumo-card-pressed shadow-inner" : "text-slate-600 hover:text-slate-900 font-semibold"
             }`}
           >
             <Calendar className="h-5 w-5" />
@@ -244,8 +382,8 @@ async function MentorHome({
           </Link>
           <Link
             href="/mentor?tab=mentees"
-            className={`flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-              tab === "mentees" ? "text-teal-700 font-bold bg-teal-50/80 shadow-2xs" : "text-slate-500 hover:text-slate-900 font-medium"
+            className={`flex min-h-[48px] min-w-[56px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
+              tab === "mentees" ? "text-teal-900 font-extrabold neumo-card-pressed shadow-inner" : "text-slate-600 hover:text-slate-900 font-semibold"
             }`}
           >
             <Users className="h-5 w-5" />
@@ -253,8 +391,8 @@ async function MentorHome({
           </Link>
           <Link
             href="/mentor?tab=followups"
-            className={`flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
-              tab === "followups" ? "text-teal-700 font-bold bg-teal-50/80 shadow-2xs" : "text-slate-500 hover:text-slate-900 font-medium"
+            className={`flex min-h-[48px] min-w-[56px] flex-col items-center justify-center gap-1 px-4 py-1.5 rounded-xl transition-all ${
+              tab === "followups" ? "text-teal-900 font-extrabold neumo-card-pressed shadow-inner" : "text-slate-600 hover:text-slate-900 font-semibold"
             }`}
           >
             <UserCheck className="h-5 w-5" />

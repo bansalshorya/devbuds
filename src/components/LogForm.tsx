@@ -60,13 +60,13 @@ export function LogForm({ studentId }: { studentId: string }) {
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <Mic className="h-4 w-4 text-teal-700" /> Language spoken
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <Mic className="h-4 w-4 text-teal-700" /> Language Spoken
         </label>
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value as "English" | "Tamil")}
-          className="mt-1 block h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-base font-medium text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-semibold text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         >
           <option>English</option>
           <option>Tamil</option>
@@ -74,8 +74,8 @@ export function LogForm({ studentId }: { studentId: string }) {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <FileText className="h-4 w-4 text-teal-700" /> What was discussed
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <FileText className="h-4 w-4 text-teal-700" /> What Was Discussed
         </label>
         <textarea
           required
@@ -83,44 +83,44 @@ export function LogForm({ studentId }: { studentId: string }) {
           placeholder="Record notes from the mentoring conversation..."
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
-          className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-3.5 text-base font-normal text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          className="mt-1 block w-full rounded-xl neumo-inset border border-slate-300 p-3.5 text-base font-medium text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <CheckCircle2 className="h-4 w-4 text-teal-700" /> Agreed action
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <CheckCircle2 className="h-4 w-4 text-teal-700" /> Agreed Action Item
         </label>
         <input
           required
           placeholder="e.g. Complete assignment 3 by Friday"
           value={action}
           onChange={(e) => setAction(e.target.value)}
-          className="mt-1 block h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-base text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-medium text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <Calendar className="h-4 w-4 text-teal-700" /> Follow-up date
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <Calendar className="h-4 w-4 text-teal-700" /> Follow-up Target Date
         </label>
         <input
           required
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className="mt-1 block h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-base text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-medium text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         />
       </div>
 
       {status === "error" && (
-        <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3.5 text-sm font-medium text-red-700 flex items-center gap-2">
+        <div role="alert" className="rounded-xl bg-red-100 border border-red-300 p-3.5 text-sm font-bold text-red-800 flex items-center gap-2 shadow-xs">
           <AlertCircle className="h-4 w-4 shrink-0" /> {error}
         </div>
       )}
       {status === "saved" && (
-        <div role="status" className="rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-sm font-semibold text-emerald-800 flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> Conversation saved successfully!
+        <div role="status" className="rounded-xl bg-emerald-100 border border-emerald-300 p-3.5 text-sm font-extrabold text-emerald-900 flex items-center gap-2 shadow-xs animate-fadeIn">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" /> Conversation saved successfully!
         </div>
       )}
 
@@ -128,7 +128,7 @@ export function LogForm({ studentId }: { studentId: string }) {
         type="submit"
         disabled={status === "saving"}
         loading={status === "saving"}
-        className="h-12 w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-base font-semibold text-white shadow-md shadow-teal-700/20 transition-all mt-2"
+        className="h-12 w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-base font-extrabold text-white shadow-md active:scale-[0.98] transition-all mt-2"
       >
         {status === "saving" ? "Saving record..." : "Save conversation"}
       </SmoothButton>
