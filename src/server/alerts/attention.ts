@@ -8,6 +8,7 @@ export type StudentRow = {
   rollNo: string;
   lastMet: Date | null;
   alerts: AlertResult[];
+  followUps: { id: string; action: string; dueDate: Date; completedAt: Date | null }[];
 };
 
 // Only students assigned to this mentor are ever loaded.
@@ -37,7 +38,7 @@ export async function getMentorStudents(mentorId: string): Promise<StudentRow[]>
     const lastMet = s.meetings.length
       ? new Date(Math.max(...s.meetings.map((m) => m.meetingDate.getTime())))
       : null;
-    return { studentId: s.id, name: s.user.name, rollNo: s.rollNo, lastMet, alerts };
+    return { studentId: s.id, name: s.user.name, rollNo: s.rollNo, lastMet, alerts, followUps: s.followUps };
   });
   return sortByAttention(rows);
 }
