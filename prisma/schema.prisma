@@ -1,40 +1,133 @@
-   generator client {
-     provider = "prisma-client-js"
-   }
+generator client {
+  provider = "prisma-client-js"
+}
 
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
-   enum Role {
-     MENTOR
-     STUDENT
-     HOD
-   }
+enum Role {
+  MENTOR
+  STUDENT
+  HOD
+}
 
-   model Department {
-     id       String    @id @default(cuid())
-     name     String
-     users    User[]
-     students Student[]
-   }
+model Department {
+  id       String    @id @default(cuid())
+  name     String
+  users    User[]
+  students Student[]
+}
 
-   model User {
-     id           String     @id @default(cuid())
-     name         String
-     mobile       String     @unique
-     role         Role
-     departmentId String
-     department   Department @relation(fields: [departmentId], references: [id])
-     student      Student?
-   }
+model User {
+  id           String             @id @default(cuid())
+  name         String
+  mobile       String             @unique
+  role         Role
+  departmentId String
+  department   Department         @relation(fields: [departmentId], references: [id])
+  student      Student?
+  assignments  MentorAssignment[]
+  meetings     Meeting[]
+  followUps    FollowUp[]
+}
 
-   model Student {
-     id           String     @id @default(cuid())
-     rollNo       String     @unique
-     userId       String     @unique
-     user         User       @relation(fields: [userId], references: [id])
-     departmentId String
-     department   Department @relation(fields: [departmentId], references: [id])
-   }
+model Student {
+  id           String             @id @default(cuid())
+  rollNo       String             @unique
+  userId       String             @unique
+  user         User               @relation(fields: [userId], references: [id])
+  departmentId String
+  department   Department         @relation(fields: [departmentId], references: [id])
+  assignments  MentorAssignment[]
+  attendance   AttendanceRecord[]
+  marks        InternalMark[]
+  lmsActivity  LmsActivity[]
+  meetings     Meeting[]
+  followUps    FollowUp[]
+}
+
+model MentorAssignment {
+  id        String  @id @default(cuid())
+  mentorId  String
+  mentor    User    @relation(fields: [mentorId], references: [id])
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+
+  @@unique([mentorId, studentId])
+  @@index([mentorId])
+}
+
+model AttendanceRecord {
+  id        String   @id @default(cuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  subject   String
+  weekStart DateTime @db.Date
+  attended  Int
+  total     Int
+
+  @@unique([studentId, subject, weekStart])
+  @@index([studentId])
+}
+
+model InternalMark {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+  subject    String
+  assessment String
+  assessedOn DateTime @db.Date
+  score      Float
+  maxScore   Float
+
+  @@unique([studentId, subject, assessment])
+  @@index([studentId])
+}
+
+model LmsActivity {
+  id         String   @id @default(cuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+  activityOn DateTime @db.Date
+  events     Int
+
+  @@unique([studentId, activityOn])
+  @@index([studentId])
+}
+
+model Meeting {
+  id                 String     @id @default(cuid())
+  clientSubmissionId String     @unique
+  mentorId           String
+  mentor             User       @relation(fields: [mentorId], references: [id])
+  studentId          String
+  student            Student    @relation(fields: [studentId], references: [id])
+  meetingDate        DateTime   @db.Date
+  language           String
+  summary            String
+  topics             String[]
+  confirmedAt        DateTime
+  createdAt          DateTime   @default(now())
+  followUps          FollowUp[]
+
+  @@index([studentId])
+  @@index([mentorId])
+}
+
+model FollowUp {
+  id          String    @id @default(cuid())
+  meetingId   String
+  meeting     Meeting   @relation(fields: [meetingId], references: [id])
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id])
+  mentorId    String
+  mentor      User      @relation(fields: [mentorId], references: [id])
+  action      String
+  dueDate     DateTime  @db.Date
+  completedAt DateTime?
+
+  @@index([studentId])
+  @@index([mentorId])
+} 
