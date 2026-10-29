@@ -2,8 +2,12 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/server/auth/session";
 import { getCoverage } from "@/server/db/coverage";
+import { getDepartmentAdministration } from "@/server/db/department";
 import { LogoutButton } from "@/components/LogoutButton";
-import { Users, CheckCircle2, Clock, BarChart3, Building2 } from "lucide-react";
+import { MentorAssignmentControl } from "@/components/MentorAssignmentControl";
+import { AddFacultyForm } from "@/components/AddFacultyForm";
+import { DepartmentCsvImport } from "@/components/DepartmentCsvImport";
+import { Users, CheckCircle2, Clock, BarChart3, Building2, BriefcaseBusiness, GraduationCap, Phone, Settings2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +30,10 @@ export default function DepartmentPage() {
 async function Coverage() {
   const user = await getCurrentUser();
   if (!user || user.role !== "HOD") redirect("/login");
-  const c = await getCoverage(user.departmentId);
+  const [c, administration] = await Promise.all([
+    getCoverage(user.departmentId),
+    getDepartmentAdministration(user.departmentId),
+  ]);
 
   const coveragePercent = c.totalStudents > 0
     ? Math.round((c.studentsReached / c.totalStudents) * 100)
@@ -122,7 +129,117 @@ async function Coverage() {
             <p className="mt-1 text-xs text-slate-500 font-medium">action items awaiting completion</p>
           </Card>
         </div>
+
+        <section className="space-y-4" aria-labelledby="department-setup-title">
+          <div>
+            <h2 id="department-setup-title" className="flex items-center gap-2 text-xl font-extrabold text-slate-900">
+              <Settings2 className="h-5 w-5 text-teal-700" /> Department setup
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">Add faculty individually or import student and faculty accounts in bulk.</p>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs"><AddFacultyForm /></Card>
+            <Card className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs"><DepartmentCsvImport /></Card>
+          </div>
+        </section>
+
+        {/* Faculty work is visible as operational counts, never private student notes. */}
+        <section className="space-y-4" aria-labelledby="faculty-work-title">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 id="faculty-work-title" className="flex items-center gap-2 text-xl font-extrabold text-slate-900">
+                <BriefcaseBusiness className="h-5 w-5 text-teal-700" />
+                Faculty work overview
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">Workload and activity counts only. Meeting notes remain confidential.</p>
+            </div>
+            <Badge variant="secondary" className="self-start bg-slate-100 text-slate-700 sm:self-auto">
+              {administration.faculty.length} faculty members
+            </Badge>
+          </div>
+
+          {administration.faculty.length === 0 ? (
+            <Card className="rounded-2xl border-dashed p-6 text-sm font-medium text-slate-600">
+              No faculty mentors are registered in this department yet.
+            </Card>
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+              <div className="hidden grid-cols-[minmax(12rem,1.5fr)_repeat(4,minmax(7rem,1fr))] gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 md:grid">
+                <span>Faculty member</span>
+                <span>Assigned students</span>
+                <span>Meetings ({administration.periodDays}d)</span>
+                <span>Pending actions</span>
+                <span>Last meeting</span>
+              </div>
+              <ul className="divide-y divide-slate-200">
+                {administration.faculty.map((member) => (
+                  <li key={member.id} className="grid gap-4 px-5 py-4 md:grid-cols-[minmax(12rem,1.5fr)_repeat(4,minmax(7rem,1fr))] md:items-center md:gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-bold text-slate-900">{member.name}</p>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-500">
+                        <Phone className="h-3 w-3" /> {member.mobile}
+                      </p>
+                    </div>
+                    <WorkMetric label="Assigned students" value={member.assignedStudents} />
+                    <WorkMetric label={`Meetings (${administration.periodDays}d)`} value={member.meetingsLogged} />
+                    <WorkMetric label="Pending actions" value={member.pendingFollowUps} emphasize={member.pendingFollowUps > 0} />
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 md:hidden">Last meeting</p>
+                      <p className="mt-0.5 text-sm font-semibold text-slate-800 md:mt-0">
+                        {member.lastMeetingOn ? member.lastMeetingOn.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "No meetings yet"}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-4" aria-labelledby="student-management-title">
+          <div>
+            <h2 id="student-management-title" className="flex items-center gap-2 text-xl font-extrabold text-slate-900">
+              <GraduationCap className="h-5 w-5 text-teal-700" />
+              Student assignments
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">Assign or reassign each student to a faculty mentor.</p>
+          </div>
+
+          {administration.students.length === 0 ? (
+            <Card className="rounded-2xl border-dashed p-6 text-sm font-medium text-slate-600">
+              No student accounts are available for assignment.
+            </Card>
+          ) : (
+            <ul className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
+              {administration.students.map((student) => (
+                <li key={student.id} className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate font-bold text-slate-900">{student.name}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-500">
+                      Roll {student.rollNo} · {student.mobile}
+                    </p>
+                  </div>
+                  <MentorAssignmentControl
+                    studentUserId={student.id}
+                    studentName={student.name}
+                    faculty={administration.faculty}
+                    currentMentorId={student.mentors[0]?.id ?? null}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </main>
+    </div>
+  );
+}
+
+function WorkMetric({ label, value, emphasize = false }: { label: string; value: number; emphasize?: boolean }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500 md:hidden">{label}</p>
+      <p className={`mt-0.5 text-lg font-extrabold md:mt-0 ${emphasize ? "text-amber-700" : "text-slate-900"}`}>{value}</p>
     </div>
   );
 }

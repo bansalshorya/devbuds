@@ -5,7 +5,8 @@ import { getCurrentUser } from "@/server/auth/session";
 import { getMentorStudents, type StudentRow } from "@/server/alerts/attention";
 import { formatDate } from "@/lib/dates";
 import { LogoutButton } from "@/components/LogoutButton";
-import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, Sparkles } from "lucide-react";
+import { FollowUpActionCard } from "@/components/FollowUpActionCard";
+import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function MentorPage({
@@ -91,6 +92,9 @@ async function MentorHome({
     .flatMap((r) => r.followUps.map((f) => ({ ...f, studentName: r.name, studentRollNo: r.rollNo, studentId: r.studentId })))
     .filter((f) => !f.completedAt)
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  const todayKey = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const overdueFollowUps = allFollowUps.filter((followUp) => dateKey(followUp.dueDate) < todayKey);
+  const dueFollowUps = allFollowUps.filter((followUp) => dateKey(followUp.dueDate) >= todayKey);
 
   return (
     <div className="min-h-screen bg-slate-50/70 pb-28">
@@ -189,7 +193,7 @@ async function MentorHome({
         )}
 
         {tab === "followups" && (
-          <section className="mt-5 px-4 space-y-3">
+          <section className="mt-5 px-4 space-y-6">
             <div className="pb-1 flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                 Open Follow-up Actions ({allFollowUps.length})
@@ -205,26 +209,10 @@ async function MentorHome({
                 <p className="text-xs text-slate-500 mt-1">All commitments have been completed!</p>
               </div>
             ) : (
-              <ul className="space-y-3">
-                {allFollowUps.map((f) => (
-                  <li key={f.id}>
-                    <Link
-                      href={`/mentor/students/${f.studentId}`}
-                      className="block rounded-2xl border border-amber-200/80 bg-gradient-to-br from-white to-amber-50/20 p-4 hover:border-amber-300 hover:shadow-md transition-all shadow-2xs group"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-amber-900 group-hover:text-amber-950 flex items-center gap-1.5">
-                          <Users className="h-3.5 w-3.5 text-amber-700" /> {f.studentName} ({f.studentRollNo})
-                        </span>
-                        <span className="text-xs font-semibold text-amber-800 bg-amber-100/70 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" /> Due {formatDate(new Date(f.dueDate))}
-                        </span>
-                      </div>
-                      <p className="mt-2.5 text-base font-semibold text-slate-900 leading-snug">{f.action}</p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <FollowUpGroup title="Overdue" items={overdueFollowUps} todayKey={todayKey} overdue />
+                <FollowUpGroup title="Due and upcoming" items={dueFollowUps} todayKey={todayKey} />
+              </>
             )}
           </section>
         )}
@@ -262,6 +250,45 @@ async function MentorHome({
           </Link>
         </div>
       </nav>
+    </div>
+  );
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function FollowUpGroup({
+  title,
+  items,
+  todayKey,
+  overdue = false,
+}: {
+  title: string;
+  items: Array<{ id: string; action: string; dueDate: Date; studentName: string; studentRollNo: string; studentId: string }>;
+  todayKey: string;
+  overdue?: boolean;
+}) {
+  if (items.length === 0) return null;
+  const today = new Date(`${todayKey}T00:00:00.000Z`);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className={`text-xs font-extrabold uppercase tracking-wider ${overdue ? "text-red-700" : "text-slate-600"}`}>{title}</h3>
+        <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-600 shadow-xs">{items.length}</span>
+      </div>
+      <ul className="space-y-3">
+        {items.map((followUp) => {
+          const dueDate = new Date(followUp.dueDate);
+          const daysOverdue = Math.round((today.getTime() - dueDate.getTime()) / (24 * 60 * 60 * 1000));
+          const isToday = dateKey(dueDate) === todayKey;
+          const dueLabel = overdue
+            ? `${daysOverdue} day${daysOverdue === 1 ? "" : "s"} overdue`
+            : isToday ? "Due today" : `Due ${formatDate(dueDate)}`;
+          return <FollowUpActionCard key={followUp.id} {...followUp} dueLabel={dueLabel} overdue={overdue} />;
+        })}
+      </ul>
     </div>
   );
 }

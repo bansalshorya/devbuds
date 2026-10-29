@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Ten-Minute Mentor app icon">
+  <rect width="512" height="512" rx="96" fill="#0f766e"/>
+  <rect x="122" y="112" width="268" height="300" rx="34" fill="#ffffff" opacity="0.98"/>
+  <path d="M186 178h140M186 232h140M186 286h78" stroke="#0f766e" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="319" cy="326" r="55" fill="#ccfbf1"/>
+  <path d="M295 326l17 17 34-38" fill="none" stroke="#0f766e" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

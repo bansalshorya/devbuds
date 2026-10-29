@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Noto_Sans_Tamil } from "next/font/google";
+import { PwaRegistration } from "@/components/PwaRegistration";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,6 +17,17 @@ const notoSansTamil = Noto_Sans_Tamil({
 export const metadata: Metadata = {
   title: "DevBuds — Ten-Minute Mentor",
   description: "Faculty mentoring and student tracking application",
+  applicationName: "Ten-Minute Mentor",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Mentor",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f766e",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -24,7 +36,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${inter.variable} ${notoSansTamil.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">{children}</body>
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+        {children}
+        <PwaRegistration />
+      </body>
     </html>
   );
 }

@@ -4,12 +4,20 @@ import { prisma } from "@/server/db/client";
 export async function getCoverage(departmentId: string, days = 30) {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   const [totalStudents, meetings, pendingFollowUps] = await Promise.all([
-    prisma.mentorAssignment.count({ where: { student: { departmentId } } }),
+    prisma.student.count({ where: { departmentId, user: { role: "STUDENT" } } }),
     prisma.meeting.findMany({
-      where: { student: { departmentId }, meetingDate: { gte: since } },
+      where: {
+        student: { departmentId, user: { role: "STUDENT" } },
+        meetingDate: { gte: since },
+      },
       select: { studentId: true },
     }),
-    prisma.followUp.count({ where: { student: { departmentId }, completedAt: null } }),
+    prisma.followUp.count({
+      where: {
+        student: { departmentId, user: { role: "STUDENT" } },
+        completedAt: null,
+      },
+    }),
   ]);
   return {
     periodDays: days,
