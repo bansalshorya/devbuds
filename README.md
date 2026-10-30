@@ -1,4 +1,14 @@
-# Ten-Minute Mentor
+# DevBuds — Ten-Minute Mentor
+
+<p align="center">
+  <img src="docs/assets/devbuds-intro.svg" width="1200" alt="DevBuds: notice student concerns, talk through Tamil or English voice notes, and follow through with reminders and progress timelines." />
+</p>
+
+**A little more support. A lot more progress.** DevBuds brings student signals, mentoring conversations, and agreed next steps into one workspace for faculty mentors, students, and departments.
+
+[Explore the app](https://devbuds-five.vercel.app) · [How it works](#4-how-it-works) · [Get started](#13-getting-started)
+
+---
 
 > **PS-first scope:** work now follows the supplied IM-104 statement, documented in [docs/problem-statement-scope.md](docs/problem-statement-scope.md). Voice logging and register downloads are connected using the existing style; optional PWA, threshold, weekly-review and analytics controls remain deferred. Live AI, a supplied college register sample, and real faculty/Android validation are still pending.
 
