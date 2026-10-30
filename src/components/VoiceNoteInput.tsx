@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Mic, Square } from "lucide-react";
+import { Mic, Square, Upload, X, FileAudio } from "lucide-react";
 import { analyzeAudio, type AudioQuality } from "@/lib/audio-quality";
+import { Button } from "@/components/ui/button";
 
 const MAX_BYTES = 3 * 1024 * 1024;
 
@@ -15,6 +16,8 @@ export function VoiceNoteInput({ studentId, language, disabled, demo, onTranscri
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
   const previewUrl = useRef("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [recording, setRecording] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -66,11 +69,21 @@ export function VoiceNoteInput({ studentId, language, disabled, demo, onTranscri
     setAudio(file);
   }
 
+  function clearAudio() {
+    if (previewUrl.current) URL.revokeObjectURL(previewUrl.current);
+    previewUrl.current = "";
+    setPreview("");
+    setAudio(null);
+    setQuality(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   function stop() {
     if (timer.current) clearTimeout(timer.current);
     if (recorder.current?.state === "recording") recorder.current.stop();
     stream.current?.getTracks().forEach((track) => track.stop());
   }
+
   async function start() {
     setError(""); setNotice("");
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
@@ -110,6 +123,7 @@ export function VoiceNoteInput({ studentId, language, disabled, demo, onTranscri
       if (mounted.current) { setError("Microphone access was denied or unavailable. Upload audio or type your note."); onBusyChange(false); }
     } finally { if (mounted.current) setRequesting(false); }
   }
+
   async function transcribe() {
     if (!audio || checking) return;
     setUploading(true); onBusyChange(true); setError(""); setNotice("");
@@ -125,34 +139,125 @@ export function VoiceNoteInput({ studentId, language, disabled, demo, onTranscri
       setError(error instanceof Error && error.name !== "TimeoutError" ? error.message : "Transcription timed out. Your recording is available to retry.");
     } finally { setUploading(false); onBusyChange(false); }
   }
+
   const busy = disabled || requesting || recording || uploading || checking;
-  return <div className="space-y-3 rounded-xl border border-[#DCE4DD] bg-[#EEF2EF] p-4">
-    <p className="text-sm font-bold">Voice note · Output: {language}</p>
-    <p className="text-sm text-[#5F6962]">Record up to 90 seconds or upload audio under 3 MB. Audio is sent to the configured speech service when you transcribe; this app does not save recordings.</p>
-    {demo && <p role="note" className="text-sm font-semibold text-amber-900">Demo speech mode: transcription inserts a labelled sample instead of recognizing your recording.</p>}
-    <div className="flex flex-wrap items-center gap-3">
-      <button type="button" disabled={disabled || requesting || uploading || checking} onClick={recording ? stop : start} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[#527A5B] px-4 text-sm font-bold text-white disabled:opacity-60">
-        {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}{recording ? "Stop recording" : requesting ? "Opening microphone…" : "Record note"}
-      </button>
-      <label className="text-sm font-semibold">Or upload audio<input type="file" accept="audio/webm,audio/mp4,audio/mpeg,audio/wav,audio/ogg,audio/flac,.m4a" disabled={busy} className="mt-1 block w-full max-w-60 text-sm file:mr-2 file:min-h-12 file:rounded-xl file:border file:bg-white file:px-3" onChange={(event) => {
-        const file = event.target.files?.[0]; if (!file) return;
-        if (file.size > MAX_BYTES || !file.size) { setError("Choose a nonempty audio file under 3 MB."); return; }
-        setError(""); setNotice(""); selectAudio(file); event.target.value = "";
-      }} /></label>
-    </div>
-    {recording && <p role="status" className="text-sm font-semibold text-red-800">Recording… Stop when you finish.</p>}
-    {audio && <div className="space-y-3">
-      <audio aria-label="Recorded voice note" controls src={preview} className="w-full" />
-      <div role="status" className={`rounded-xl border p-3 text-sm ${quality?.warnings.length ? "border-amber-300 bg-amber-50 text-amber-950" : "border-[#DCE4DD] text-[#42664A]"}`}>
-        {checking ? "Checking recording quality on this device…" : qualityUnavailable ? "Automatic quality checks are unavailable for this recording. Play it back to check that speech is audible before transcribing." : quality && <>
-          <p className="font-bold">{Math.round(quality.duration * 10) / 10}s · {quality.warnings.length ? "Check your recording" : "No volume or clipping issues detected"}</p>
-          {!!quality.warnings.length && <ul className="mt-1 list-disc space-y-1 pl-5">{quality.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>}
-          <p className="mt-1 text-xs">Checks run locally and cannot confirm speech clarity or background noise. Listen to the preview if unsure.</p>
-        </>}
+
+  return (
+    <div className="space-y-4 rounded-2xl border border-[#DCE4DD] bg-[#EEF2EF] p-5 shadow-xs">
+      <div className="space-y-1">
+        <p className="text-sm font-extrabold text-[#242924]">Voice note · Output: {language}</p>
+        <p className="text-xs text-[#5F6962] font-medium">Record up to 90 seconds or upload audio under 3 MB. Audio is sent to the configured speech service when you transcribe; this app does not save recordings.</p>
       </div>
-      <button type="button" disabled={busy} onClick={transcribe} className="min-h-12 rounded-xl border border-[#527A5B] bg-white px-4 text-sm font-bold text-[#42664A] disabled:opacity-60">{uploading ? "Transcribing…" : quality?.warnings.length ? "Transcribe anyway" : "Transcribe recording"}</button>
-    </div>}
-    {notice && <p role="status" className="text-sm text-[#42664A]">{notice}</p>}
-    {error && <p role="alert" className="text-sm text-red-800">{error}</p>}
-  </div>;
+
+      {demo && <p role="note" className="text-xs font-semibold text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-200">Demo speech mode: transcription inserts a labelled sample instead of recognizing your recording.</p>}
+
+      {/* Recording and Upload Actions in a Balanced Layout with OR Separator */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={recording ? stop : start}
+          className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-[#527A5B] px-5 text-sm font-bold text-white shadow-sm hover:bg-[#42664A] disabled:opacity-50 transition-all cursor-pointer"
+        >
+          {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          {recording ? "Stop recording" : requesting ? "Opening microphone…" : "Record note"}
+        </button>
+
+        <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider text-[#5F6962] py-1 sm:py-0">
+          <div className="h-px w-8 bg-[#DCE4DD] sm:hidden" />
+          <span>or</span>
+          <div className="h-px w-8 bg-[#DCE4DD] sm:hidden" />
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/webm,audio/mp4,audio/mpeg,audio/wav,audio/ogg,audio/flac,.m4a"
+          disabled={busy}
+          aria-label="Upload audio file"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            if (file.size > MAX_BYTES || !file.size) {
+              setError("Choose a nonempty audio file under 3 MB.");
+              return;
+            }
+            setError(""); setNotice(""); selectAudio(file);
+          }}
+        />
+
+        <Button
+          type="button"
+          variant="outline"
+          disabled={busy}
+          onClick={() => fileInputRef.current?.click()}
+          className="h-12 flex-1 rounded-xl border-[#DCE4DD] bg-white px-5 font-bold text-[#527A5B] hover:bg-[#F0F5F1] shadow-xs cursor-pointer"
+        >
+          <Upload className="h-4 w-4 mr-2" /> Choose audio file
+        </Button>
+      </div>
+
+      {recording && (
+        <div role="status" className="flex items-center gap-2 text-xs font-bold text-red-700 bg-red-50 p-3 rounded-xl border border-red-200 animate-pulse">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-600 animate-ping" />
+          Recording in progress… Stop when you finish.
+        </div>
+      )}
+
+      {/* Selected File Information Area */}
+      {audio && (
+        <div className="space-y-3 pt-2 border-t border-[#DCE4DD] animate-fadeIn">
+          <div className="flex items-center justify-between rounded-xl bg-white p-3 border border-[#DCE4DD] shadow-xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EEF2EF] text-[#527A5B] shrink-0 border border-[#DCE4DD]">
+                <FileAudio className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#242924] truncate">{audio.name}</p>
+                <p className="text-[11px] text-[#5F6962] font-semibold">{(audio.size / 1024).toFixed(1)} KB · Ready to transcribe</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={clearAudio}
+              disabled={busy}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#5F6962] hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer shrink-0"
+              title="Remove selected audio"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <audio aria-label="Recorded voice note" controls src={preview} className="w-full rounded-xl" />
+
+          <div role="status" className={`rounded-xl border p-3.5 text-xs font-medium ${quality?.warnings.length ? "border-amber-300 bg-amber-50 text-amber-950" : "border-[#DCE4DD] bg-white text-[#42664A]"}`}>
+            {checking ? (
+              <p className="font-bold">Checking recording quality on this device…</p>
+            ) : qualityUnavailable ? (
+              <p className="font-bold">Automatic quality checks are unavailable for this recording. Play it back to check that speech is audible before transcribing.</p>
+            ) : quality && (
+              <>
+                <p className="font-extrabold">{Math.round(quality.duration * 10) / 10}s · {quality.warnings.length ? "Check your recording" : "No volume or clipping issues detected"}</p>
+                {!!quality.warnings.length && <ul className="mt-1 list-disc space-y-1 pl-4">{quality.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>}
+                <p className="mt-1 text-[11px] text-[#5F6962]">Checks run locally and cannot confirm speech clarity or background noise. Listen to the preview if unsure.</p>
+              </>
+            )}
+          </div>
+
+          <Button
+            type="button"
+            disabled={busy}
+            onClick={transcribe}
+            className="w-full h-12 rounded-xl bg-white border border-[#527A5B] text-[#527A5B] font-bold hover:bg-[#F0F5F1] shadow-xs cursor-pointer"
+          >
+            {uploading ? "Transcribing…" : quality?.warnings.length ? "Transcribe anyway" : "Transcribe recording"}
+          </Button>
+        </div>
+      )}
+
+      {notice && <p role="status" className="text-xs font-semibold text-[#42664A] bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">{notice}</p>}
+      {error && <p role="alert" className="text-xs font-semibold text-red-800 bg-red-50 p-2.5 rounded-xl border border-red-200">{error}</p>}
+    </div>
+  );
 }

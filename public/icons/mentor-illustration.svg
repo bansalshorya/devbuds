@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#EBF3EE"/>
+  <ellipse cx="256" cy="270" rx="160" ry="130" fill="#D6E6E3" opacity="0.8"/>
+  <g fill="#93B1A6" opacity="0.4">
+    <circle cx="120" cy="140" r="8"/>
+    <circle cx="390" cy="130" r="6"/>
+    <circle cx="100" cy="380" r="7"/>
+    <circle cx="410" cy="360" r="8"/>
+  </g>
+  <!-- Smaller people -->
+  <g transform="translate(0, 30)">
+    <circle cx="180" cy="300" r="26" fill="none" stroke="#7E52B7" stroke-width="12"/>
+    <path d="M140 400 c0 -35 25 -50 40 -50 s40 15 40 50" fill="none" stroke="#7E52B7" stroke-width="12" stroke-linecap="round"/>
+
+    <circle cx="256" cy="280" r="30" fill="none" stroke="#7E52B7" stroke-width="12"/>
+    <path d="M210 390 c0 -40 30 -60 46 -60 s46 20 46 60" fill="none" stroke="#7E52B7" stroke-width="12" stroke-linecap="round"/>
+
+    <circle cx="332" cy="300" r="26" fill="none" stroke="#7E52B7" stroke-width="12"/>
+    <path d="M292 400 c0 -35 25 -50 40 -50 s40 15 40 50" fill="none" stroke="#7E52B7" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <!-- Large mentor figure -->
+  <g transform="translate(0, -20)">
+    <circle cx="256" cy="150" r="44" fill="none" stroke="#7E52B7" stroke-width="14"/>
+    <path d="M190 280 c0 -60 35 -85 66 -85 s66 25 66 85" fill="none" stroke="#7E52B7" stroke-width="14" stroke-linecap="round"/>
+    <path d="M210 200 l-35 -35" fill="none" stroke="#7E52B7" stroke-width="12" stroke-linecap="round"/>
+    <path d="M302 200 l35 -35" fill="none" stroke="#7E52B7" stroke-width="12" stroke-linecap="round"/>
+  </g>
+</svg>
