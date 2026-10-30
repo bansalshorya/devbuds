@@ -39,12 +39,13 @@ export function VoiceDraftInput({ studentId, language, disabled, speechDemo, ext
     <summary className="min-h-12 cursor-pointer text-sm font-bold text-[#242924]">Voice note · Tamil / English</summary>
     <div className="space-y-3">
       <VoiceNoteInput studentId={studentId} language={language} disabled={disabled || drafting} demo={speechDemo}
-        onTranscript={(text) => { setTranscript((previous) => previous ? `${previous}\n${text}` : text); setError(""); }}
+        onTranscript={(text) => { setTranscript(text); setError(""); setNotice(""); }}
         onBusyChange={(value) => { setRecordingBusy(value); onBusyChange(value); }} />
       <label className="block text-sm font-bold text-[#242924]">Transcript or typed recap
         <textarea rows={3} maxLength={10000} disabled={busy} value={transcript} onChange={(event) => setTranscript(event.target.value)}
           className="mt-1 block w-full rounded-xl neumo-inset border border-[#DCE4DD] p-3.5 text-base font-medium text-[#242924] focus:outline-none focus:ring-2 focus:ring-[#527A5B]/30" />
       </label>
+      <p className="text-xs text-[#5F6962]">Transcribing replaces the text above with the recording in {language}. Creating a draft uses {language}, including for a typed recap.</p>
       {extractionDemo && <p className="text-sm text-amber-900">Demo extraction copies the text; live AI requires configuration.</p>}
       <Button type="button" disabled={busy || transcript.trim().length < 3} onClick={createDraft}
         className="h-12 rounded-xl bg-[#527A5B] px-4 font-bold text-white hover:bg-[#42664A]">{drafting ? "Creating draft…" : "Create editable draft"}</Button>

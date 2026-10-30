@@ -86,7 +86,7 @@ export function VoiceNoteInput({ studentId, language, disabled, demo, onTranscri
   }
   async function transcribe() {
     if (!audio) return;
-    setUploading(true); onBusyChange(true); setError("");
+    setUploading(true); onBusyChange(true); setError(""); setNotice("");
     try {
       const form = new FormData();
       form.append("audio", audio); form.append("studentId", studentId); form.append("language", language);
@@ -94,14 +94,14 @@ export function VoiceNoteInput({ studentId, language, disabled, demo, onTranscri
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Transcription failed");
       onTranscript(data.transcript);
-      setNotice(data.demo ? "Demo sample inserted; this is not a transcription of your audio." : "Transcript added below. Review it, then create a draft.");
+      setNotice(data.demo ? "Demo sample inserted; this is not a transcription of your audio." : `Transcript ready in ${language}. Review it, then create a draft.`);
     } catch (error) {
       setError(error instanceof Error && error.name !== "TimeoutError" ? error.message : "Transcription timed out. Your recording is available to retry.");
     } finally { setUploading(false); onBusyChange(false); }
   }
   const busy = disabled || requesting || recording || uploading;
   return <div className="space-y-3 rounded-xl border border-[#DCE4DD] bg-[#EEF2EF] p-4">
-    <p className="text-sm font-bold">Voice note · {language}</p>
+    <p className="text-sm font-bold">Voice note · Output: {language}</p>
     <p className="text-sm text-[#5F6962]">Record up to 90 seconds or upload audio under 3 MB. Audio is sent to the configured speech service when you transcribe; this app does not save recordings.</p>
     {demo && <p role="note" className="text-sm font-semibold text-amber-900">Demo speech mode: transcription inserts a labelled sample instead of recognizing your recording.</p>}
     <div className="flex flex-wrap items-center gap-3">

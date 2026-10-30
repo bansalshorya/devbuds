@@ -58,10 +58,11 @@ export function LogForm({ studentId, speechDemo = false, extractionDemo = false 
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
       <div>
-        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <Mic className="h-4 w-4 text-teal-700" /> Language Spoken
+        <label htmlFor="note-output-language" className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <Mic className="h-4 w-4 text-teal-700" /> Output language
         </label>
         <select
+          id="note-output-language"
           value={language}
           disabled={voiceBusy || status === "saving"}
           onChange={(e) => setLanguage(e.target.value as "English" | "Tamil")}
@@ -70,6 +71,7 @@ export function LogForm({ studentId, speechDemo = false, extractionDemo = false 
           <option>English</option>
           <option>Tamil</option>
         </select>
+        <p className="mt-1.5 text-xs text-[#5F6962]">Speak in Tamil, English, or a mix. The transcript and generated draft will use the selected language. After changing it, transcribe again to update the transcript.</p>
       </div>
 
       <VoiceDraftInput key={voiceKey} studentId={studentId} language={language} disabled={status === "saving"}

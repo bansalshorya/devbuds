@@ -54,26 +54,56 @@ describe("AI draft safety and fallback", () => {
     vi.stubEnv("TRANSCRIBER", "gemini"); vi.stubEnv("GEMINI_API_KEY", "");
     await expect(transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "Tamil")).rejects.toThrow("not configured");
   });
-  it("sends Tamil audio inline to Gemini without requesting translation", async () => {
+  it.each(["English", "Tamil"] as const)("requests Gemini audio output in %s regardless of spoken language", async (language) => {
     vi.stubEnv("TRANSCRIBER", "gemini"); vi.stubEnv("GEMINI_API_KEY", "test-key");
     const request = vi.fn().mockResolvedValue(Response.json({ candidates: [{ finishReason: "STOP", content: { parts: [{ text: "வருகை குறித்து பேசினோம்." }] } }] }));
     vi.stubGlobal("fetch", request);
-    const result = await transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "Tamil");
+    const result = await transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), language);
     expect(result).toEqual({ demo: false, transcript: "வருகை குறித்து பேசினோம்." });
     expect(request.mock.calls[0][0]).toContain("gemini-3.1-flash-lite:generateContent");
     expect(request.mock.calls[0][1].headers["x-goog-api-key"]).toBe("test-key");
     const body = JSON.parse(request.mock.calls[0][1].body as string);
-    expect(body.contents[0].parts[0].text).toContain("Preserve Tamil, English, and any code-switching");
+    expect(body.contents[0].parts[0].text).toContain("Recognize Tamil, English, or mixed Tamil-English speech automatically");
+    expect(body.contents[0].parts[0].text).toContain(`Return the complete transcript entirely in ${language}`);
+    expect(body.contents[0].parts[0].text).toContain(`Translate speech in any other language into ${language}`);
+    if (language === "Tamil") expect(body.contents[0].parts[0].text).toContain("using Tamil script");
     expect(body.contents[0].parts[1].inlineData).toEqual({ mimeType: "audio/webm", data: "Y2xpcA==" });
   });
-  it("sends Tamil audio as transcription, not translation", async () => {
+  it.each(["English", "Tamil"] as const)("detects OpenAI input language then renders the transcript in %s", async (language) => {
     vi.stubEnv("TRANSCRIBER", "openai"); vi.stubEnv("OPENAI_API_KEY", "test-key");
-    const request = vi.fn().mockResolvedValue(Response.json({ text: "வருகை குறித்து பேசினோம்." }));
+    const text = language === "Tamil" ? "வருகை குறித்து பேசினோம்." : "We discussed attendance.";
+    const request = vi.fn().mockResolvedValueOnce(Response.json({ text: "வருகை குறித்து பேசினோம்." }))
+      .mockResolvedValueOnce(Response.json({ choices: [{ finish_reason: "stop", message: { content: text } }] }));
     vi.stubGlobal("fetch", request);
-    const result = await transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "Tamil");
-    expect(result.demo).toBe(false);
+    const result = await transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), language);
+    expect(result).toEqual({ demo: false, transcript: text });
     expect(request.mock.calls[0][0]).toBe("https://api.openai.com/v1/audio/transcriptions");
-    expect((request.mock.calls[0][1].body as FormData).get("language")).toBe("ta");
+    expect((request.mock.calls[0][1].body as FormData).has("language")).toBe(false);
+    expect(request.mock.calls[1][0]).toBe("https://api.openai.com/v1/chat/completions");
+    const body = JSON.parse(request.mock.calls[1][1].body as string);
+    expect(body.store).toBe(false);
+    expect(body.messages[0].content).toContain(`Render the complete transcript entirely in ${language}`);
+    expect(body.messages[1].content).toBe("வருகை குறித்து பேசினோம்.");
+  });
+  it("does not accept refused OpenAI transcript translation", async () => {
+    vi.stubEnv("TRANSCRIBER", "openai"); vi.stubEnv("OPENAI_API_KEY", "test-key");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce(Response.json({ text: "We discussed attendance." }))
+      .mockResolvedValueOnce(Response.json({ choices: [{ finish_reason: "stop", message: { content: null, refusal: "refused" } }] })));
+    await expect(transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "Tamil")).rejects.toThrow("selected language");
+  });
+  it.each(["gemini", "openai"])("translates %s drafts while preserving source date phrases for resolution", async (provider) => {
+    vi.stubEnv("EXTRACTOR", provider); vi.stubEnv("GEMINI_API_KEY", "test-key"); vi.stubEnv("OPENAI_API_KEY", "test-key");
+    const draft = JSON.stringify({ summary: "பணியைச் சமர்ப்பிப்பது குறித்து பேசினோம்.", topics: ["பணி"], actions: [{ action: "பணியைச் சமர்ப்பிக்கவும்", dateText: "tomorrow" }] });
+    const request = vi.fn().mockResolvedValue(Response.json(provider === "gemini"
+      ? { candidates: [{ finishReason: "STOP", content: { parts: [{ text: draft }] } }] }
+      : { choices: [{ finish_reason: "stop", message: { content: draft } }] }));
+    vi.stubGlobal("fetch", request);
+    const result = await extractDraft("Submit the assignment tomorrow", "Tamil", "2026-10-30");
+    expect(result.draft.actions[0]).toEqual({ action: "பணியைச் சமர்ப்பிக்கவும்", dueDate: "2026-10-31" });
+    const body = JSON.parse(request.mock.calls[0][1].body as string);
+    const instruction = provider === "gemini" ? body.systemInstruction.parts[0].text : body.messages[0].content;
+    expect(instruction).toContain("entirely in Tamil; translate the source text when needed");
+    expect(instruction).toContain("Only dateText must remain verbatim in the source language");
   });
   it.each([
     [400, "API_KEY_INVALID", "rejected the API key"],
