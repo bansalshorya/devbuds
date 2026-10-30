@@ -16,6 +16,19 @@ export const LoginSchema = z.object({
   otp: z.string().min(4).max(8),
 });
 
+export const MentorAssignmentSchema = z.object({
+  mentorId: z.string().min(1).nullable(),
+});
+
+export const FacultyCreateSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  mobile: z.string().regex(/^\d{10}$/),
+});
+
+export const DepartmentCsvImportSchema = z.object({
+  csv: z.string().min(1).max(500_000),
+});
+
 export const DateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(
   (value) => {
     const date = new Date(`${value}T00:00:00Z`);

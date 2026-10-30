@@ -7,7 +7,11 @@ import { getThresholds } from "../alerts/settings";
 export async function getCoverage(departmentId: string, days = 30, mentorId?: string) {
   const [students, department, totalFaculty] = await Promise.all([
     prisma.student.findMany({
-      where: { departmentId, ...(mentorId ? { assignments: { some: { mentorId } } } : {}) },
+      where: {
+        departmentId,
+        user: { role: "STUDENT" },
+        ...(mentorId ? { assignments: { some: { mentorId } } } : {}),
+      },
       select: {
         id: true, assignments: { select: { mentorId: true } },
         attendance: { select: { subject: true, weekStart: true, attended: true, total: true } },
@@ -20,11 +24,15 @@ export async function getCoverage(departmentId: string, days = 30, mentorId?: st
     prisma.department.findUnique({ where: { id: departmentId }, select: { alertThresholds: true } }),
     prisma.user.count({ where: { departmentId, role: "MENTOR", ...(mentorId ? { id: mentorId } : {}) } }),
   ]);
-  return {
-    ...aggregateCoverage(students.map((student) => ({
+  const aggregate = aggregateCoverage(students.map((student) => ({
       ...student, studentId: student.id, name: "", assigned: student.assignments.length > 0,
       lmsDates: student.lmsActivity.map((activity) => activity.activityOn),
       followUps: student.followUps.map((followUp) => ({ ...followUp, action: "" })),
-    })), mentorId ? await getThresholds(mentorId) : configuredThresholds(department?.alertThresholds), new Date(), days), totalFaculty,
+    })), mentorId ? await getThresholds(mentorId) : configuredThresholds(department?.alertThresholds), new Date(), days);
+  return {
+    ...aggregate,
+    assignedStudents: aggregate.totalStudents,
+    totalStudents: mentorId ? aggregate.totalStudents : students.length,
+    totalFaculty,
   };
 }

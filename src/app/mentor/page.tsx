@@ -147,6 +147,9 @@ async function MentorHome({
     .flatMap((r) => r.followUps.map((f) => ({ ...f, studentName: r.name, studentRollNo: r.rollNo, studentId: r.studentId })))
     .filter((f) => !f.completedAt)
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  const todayKey = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+  const overdueFollowUps = allFollowUps.filter((followUp) => dateKey(followUp.dueDate) < todayKey);
+  const dueFollowUps = allFollowUps.filter((followUp) => dateKey(followUp.dueDate) >= todayKey);
 
   const createQueryString = (newParams: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
@@ -346,27 +349,10 @@ async function MentorHome({
                 <p className="text-xs text-[#5F6962] mt-1 font-semibold">All mentoring commitments have been completed!</p>
               </div>
             ) : (
-              <ul className="space-y-3.5">
-                {allFollowUps.map((f) => (
-                  <li key={f.id} className="neumo-card p-5 border-amber-200 bg-gradient-to-br from-[#FFFFFF] to-amber-50/40 hover:border-amber-400 transition-all group">
-                    <Link
-                      href={`/mentor/students/${f.studentId}`}
-                      className="block"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-extrabold text-amber-900 group-hover:text-amber-950 flex items-center gap-1.5">
-                          <Users className="h-3.5 w-3.5 text-amber-700" /> {f.studentName} {f.studentRollNo ? `(${f.studentRollNo})` : ""}
-                        </span>
-                        <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full flex items-center gap-1 border border-amber-300 shadow-2xs">
-                          <Calendar className="h-3.5 w-3.5" /> Due {formatDate(new Date(f.dueDate))}
-                        </span>
-                      </div>
-                      <p className="mt-3 text-base font-bold text-[#242924] leading-snug">{f.action}</p>
-                    </Link>
-                    <CompleteFollowUpButton id={f.id} action={f.action} />
-                  </li>
-                ))}
-              </ul>
+              <div className="space-y-6">
+                <FollowUpGroup title="Overdue" items={overdueFollowUps} todayKey={todayKey} overdue />
+                <FollowUpGroup title="Due and upcoming" items={dueFollowUps} todayKey={todayKey} />
+              </div>
             )}
           </section>
         )}
@@ -405,6 +391,71 @@ async function MentorHome({
           </Link>
         </div>
       </nav>
+    </div>
+  );
+}
+
+function dateKey(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function FollowUpGroup({
+  title,
+  items,
+  todayKey,
+  overdue = false,
+}: {
+  title: string;
+  items: Array<{ id: string; action: string; dueDate: Date; studentName: string; studentRollNo: string; studentId: string }>;
+  todayKey: string;
+  overdue?: boolean;
+}) {
+  if (items.length === 0) return null;
+  const today = new Date(`${todayKey}T00:00:00.000Z`);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between px-1">
+        <h3 className={`text-xs font-extrabold uppercase tracking-wider ${overdue ? "text-red-700" : "text-[#5F6962]"}`}>{title}</h3>
+        <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-[#5F6962] shadow-xs">{items.length}</span>
+      </div>
+      <ul className="space-y-3.5">
+        {items.map((followUp) => {
+          const dueDate = new Date(followUp.dueDate);
+          const daysOverdue = Math.round((today.getTime() - dueDate.getTime()) / (24 * 60 * 60 * 1000));
+          const isToday = dateKey(dueDate) === todayKey;
+          const dueLabel = overdue
+            ? `${daysOverdue} day${daysOverdue === 1 ? "" : "s"} overdue`
+            : isToday ? "Due today" : `Due ${formatDate(dueDate)}`;
+
+          return (
+            <li
+              key={followUp.id}
+              className={`neumo-card p-5 transition-all group ${
+                overdue
+                  ? "border-red-200 bg-gradient-to-br from-[#FFFFFF] to-red-50/50 hover:border-red-400"
+                  : "border-amber-200 bg-gradient-to-br from-[#FFFFFF] to-amber-50/40 hover:border-amber-400"
+              }`}
+            >
+              <Link href={`/mentor/students/${followUp.studentId}`} className="block">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-xs font-extrabold flex items-center gap-1.5 ${overdue ? "text-red-900" : "text-amber-900"}`}>
+                    <Users className={`h-3.5 w-3.5 ${overdue ? "text-red-700" : "text-amber-700"}`} />
+                    {followUp.studentName} {followUp.studentRollNo ? `(${followUp.studentRollNo})` : ""}
+                  </span>
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1 border shadow-2xs ${
+                    overdue ? "text-red-900 bg-red-100 border-red-300" : "text-amber-900 bg-amber-100 border-amber-300"
+                  }`}>
+                    <Calendar className="h-3.5 w-3.5" /> {dueLabel}
+                  </span>
+                </div>
+                <p className="mt-3 text-base font-bold text-[#242924] leading-snug">{followUp.action}</p>
+              </Link>
+              <CompleteFollowUpButton id={followUp.id} action={followUp.action} />
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

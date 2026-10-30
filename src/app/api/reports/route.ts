@@ -9,7 +9,7 @@ export async function GET() {
   const coverage = await getCoverage(user.departmentId, 30, user.role === "MENTOR" ? user.id : undefined);
   const workbook = new ExcelJS.Workbook();
   const summary = workbook.addWorksheet("Coverage");
-  summary.addRows([["Metric", "Value"], ["Period days", coverage.periodDays], ["Assigned students", coverage.totalStudents], ["Students reached", coverage.studentsReached], ["Meetings logged", coverage.meetingsLogged], ["Pending follow-ups", coverage.pendingFollowUps], ["Students needing attention", coverage.studentsNeedingAttention], ["High priority students", coverage.highPriorityStudents]]);
+  summary.addRows([["Metric", "Value"], ["Period days", coverage.periodDays], ["Assigned students", coverage.assignedStudents], ["Students reached", coverage.studentsReached], ["Meetings logged", coverage.meetingsLogged], ["Pending follow-ups", coverage.pendingFollowUps], ["Students needing attention", coverage.studentsNeedingAttention], ["High priority students", coverage.highPriorityStudents]]);
   const subjects = workbook.addWorksheet("Subject performance");
   subjects.addRows([["Subject", "Attendance (%)", "Latest marks (%)"], ...coverage.subjects.map((row) => [row.subject, row.attendancePct, row.latestMarksPct])]);
   const months = workbook.addWorksheet("Monthly meetings");
