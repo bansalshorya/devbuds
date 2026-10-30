@@ -51,8 +51,20 @@ describe("AI draft safety and fallback", () => {
     await expect(extractDraft("Reviewed attendance", "English", "2026-10-30")).rejects.toThrow("not configured");
   });
   it("fails with an actionable error when a real provider has no key", async () => {
-    vi.stubEnv("TRANSCRIBER", "openai"); vi.stubEnv("OPENAI_API_KEY", "");
+    vi.stubEnv("TRANSCRIBER", "gemini"); vi.stubEnv("GEMINI_API_KEY", "");
     await expect(transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "Tamil")).rejects.toThrow("not configured");
+  });
+  it("sends Tamil audio inline to Gemini without requesting translation", async () => {
+    vi.stubEnv("TRANSCRIBER", "gemini"); vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const request = vi.fn().mockResolvedValue(Response.json({ candidates: [{ finishReason: "STOP", content: { parts: [{ text: "வருகை குறித்து பேசினோம்." }] } }] }));
+    vi.stubGlobal("fetch", request);
+    const result = await transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "Tamil");
+    expect(result).toEqual({ demo: false, transcript: "வருகை குறித்து பேசினோம்." });
+    expect(request.mock.calls[0][0]).toContain("gemini-2.5-flash:generateContent");
+    expect(request.mock.calls[0][1].headers["x-goog-api-key"]).toBe("test-key");
+    const body = JSON.parse(request.mock.calls[0][1].body as string);
+    expect(body.contents[0].parts[0].text).toContain("Preserve Tamil, English, and any code-switching");
+    expect(body.contents[0].parts[1].inlineData).toEqual({ mimeType: "audio/webm", data: "Y2xpcA==" });
   });
   it("sends Tamil audio as transcription, not translation", async () => {
     vi.stubEnv("TRANSCRIBER", "openai"); vi.stubEnv("OPENAI_API_KEY", "test-key");
@@ -70,5 +82,15 @@ describe("AI draft safety and fallback", () => {
     vi.stubGlobal("fetch", request);
     expect((await extractDraft("Submit work tomorrow", "English", "2026-10-30")).draft.actions[0].dueDate).toBe("2026-10-31");
     await expect(extractDraft("Submit work tomorrow", "English", "2026-10-30")).rejects.toThrow("could not be generated");
+  });
+  it("validates Gemini structured output before creating an editable draft", async () => {
+    vi.stubEnv("EXTRACTOR", "gemini"); vi.stubEnv("GEMINI_API_KEY", "test-key");
+    const request = vi.fn().mockResolvedValue(Response.json({ candidates: [{ finishReason: "STOP", content: { parts: [{ text: JSON.stringify({ summary: "Reviewed work", topics: ["Assignments"], actions: [{ action: "Submit work", dateText: "tomorrow" }] }) }] } }] }));
+    vi.stubGlobal("fetch", request);
+    const result = await extractDraft("Submit work tomorrow", "English", "2026-10-30");
+    expect(result).toEqual({ demo: false, draft: { summary: "Reviewed work", topics: ["Assignments"], actions: [{ action: "Submit work", dueDate: "2026-10-31" }] } });
+    const body = JSON.parse(request.mock.calls[0][1].body as string);
+    expect(body.generationConfig.responseMimeType).toBe("application/json");
+    expect(body.generationConfig.responseSchema.required).toEqual(["summary", "topics", "actions"]);
   });
 });

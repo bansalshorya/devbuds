@@ -278,14 +278,15 @@ The `.env.example` defaults to explicitly labelled demo providers. Demo transcri
 To use real transcription and extraction, set these server-side variables in `.env` and restart the server:
 
 ```dotenv
-TRANSCRIBER="openai"
-EXTRACTOR="openai"
-OPENAI_API_KEY="your-api-key"
-OPENAI_TRANSCRIPTION_MODEL="whisper-1"
-OPENAI_EXTRACTION_MODEL="gpt-4o-mini"
+TRANSCRIBER="gemini"
+EXTRACTOR="gemini"
+GEMINI_API_KEY="your-google-ai-studio-key"
+GEMINI_MODEL="gemini-2.5-flash"
 ```
 
-The integration uses OpenAI's [file transcription API](https://developers.openai.com/api/docs/guides/speech-to-text) and [structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat), with schema validation before displaying a draft. Models are configurable; choose a speech model with Tamil support and an extraction model supporting Chat Completions JSON-schema output. Recording requires HTTPS or localhost and microphone permission. Each speech/extraction request is awaited with a 45-second provider timeout; this implementation does not claim durable background processing. Hosting must support the routes' 60-second duration and audio payload size.
+Create the key in [Google AI Studio](https://aistudio.google.com/api-keys). The integration uses Gemini's [audio understanding](https://ai.google.dev/gemini-api/docs/audio) and [structured outputs](https://ai.google.dev/gemini-api/docs/structured-output), with schema validation before displaying a draft. Audio clips are sent inline because this app limits them to 3 MB, below Gemini's documented 20 MB inline-request limit. Models are configurable with `GEMINI_MODEL`, or separately with `GEMINI_TRANSCRIPTION_MODEL` and `GEMINI_EXTRACTION_MODEL`. The previous OpenAI provider remains available by setting `TRANSCRIBER="openai"`, `EXTRACTOR="openai"`, and the corresponding OpenAI variables from `.env.example`.
+
+Recording requires HTTPS or localhost and microphone permission. Each speech/extraction request is awaited with a 45-second provider timeout; this implementation does not claim durable background processing. Hosting must support the routes' 60-second duration and audio payload size.
 
 The app does not write audio or unconfirmed transcripts to its database or filesystem, and extraction requests disable response storage. Audio/transcripts are sent to the configured provider; that provider's retention policy applies separately. Do not expose the API key using a `NEXT_PUBLIC_` variable. Live Tamil/mixed-speech accuracy and device timing still require testing with real clips and credentials.
 
