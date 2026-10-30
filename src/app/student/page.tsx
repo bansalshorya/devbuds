@@ -4,6 +4,7 @@ import { prisma } from "@/server/db/client";
 import { getCurrentUser } from "@/server/auth/session";
 import { formatDate } from "@/lib/dates";
 import { LogoutButton } from "@/components/LogoutButton";
+import { CompleteFollowUpButton } from "@/components/CompleteFollowUpButton";
 import { GraduationCap, Calendar, Clock, CheckCircle2, MessageSquare, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -94,6 +95,7 @@ async function StudentHome() {
                     <p className="mt-1.5 text-xs font-bold text-amber-800 flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5 shrink-0" /> Due by {formatDate(f.dueDate)}
                     </p>
+                    <CompleteFollowUpButton id={f.id} action={f.action} />
                   </div>
                 </li>
               ))}

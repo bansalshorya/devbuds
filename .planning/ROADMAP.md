@@ -1,7 +1,13 @@
 # Roadmap: DevBuds
 
+**Scope override:** the owner supplied the actual IM-104 statement and requested the required features first. Use `docs/problem-statement-scope.md` as the acceptance baseline; optional enhancements in this older roadmap are deferred.
+
 **Milestone:** v1 Enhancements & Hardening
 **Created:** 2026-10-29
+
+**Frontend rollback, 2026-10-30:** the owner requested original frontend screens and forms. New frontend controls/PWA have been reverted while backend endpoints, migrations and tests remain. The previous completion snapshot below describes the pre-rollback state; current UI-dependent requirements have been reopened.
+
+**Status, 2026-10-30:** Phases 1 and 3 are implemented. Phase 2 has aggregate Excel/browser PDF reporting, subject overviews and six calendar months of trends; semester-specific data remains pending. Phase 4 automated checks and the isolated local integration verifier pass. Live speech benchmarking, actual faculty timing and Android hardware checks are still required; see `docs/acceptance-test.md`.
 
 ## Phases
 

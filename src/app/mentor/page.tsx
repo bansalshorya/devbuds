@@ -5,6 +5,8 @@ import { getCurrentUser } from "@/server/auth/session";
 import { getMentorStudents, type StudentRow } from "@/server/alerts/attention";
 import { formatDate } from "@/lib/dates";
 import { LogoutButton } from "@/components/LogoutButton";
+import { CompleteFollowUpButton } from "@/components/CompleteFollowUpButton";
+import { RegisterDownload } from "@/components/RegisterDownload";
 import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, ShieldAlert, X, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -346,10 +348,10 @@ async function MentorHome({
             ) : (
               <ul className="space-y-3.5">
                 {allFollowUps.map((f) => (
-                  <li key={f.id}>
+                  <li key={f.id} className="neumo-card p-5 border-amber-200 bg-gradient-to-br from-[#FFFFFF] to-amber-50/40 hover:border-amber-400 transition-all group">
                     <Link
                       href={`/mentor/students/${f.studentId}`}
-                      className="block neumo-card p-5 border-amber-200 bg-gradient-to-br from-[#FFFFFF] to-amber-50/40 hover:border-amber-400 transition-all group"
+                      className="block"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-extrabold text-amber-900 group-hover:text-amber-950 flex items-center gap-1.5">
@@ -361,12 +363,14 @@ async function MentorHome({
                       </div>
                       <p className="mt-3 text-base font-bold text-[#242924] leading-snug">{f.action}</p>
                     </Link>
+                    <CompleteFollowUpButton id={f.id} action={f.action} />
                   </li>
                 ))}
               </ul>
             )}
           </section>
         )}
+        <RegisterDownload />
       </main>
 
       {/* Mobile Bottom Navigation Bar */}

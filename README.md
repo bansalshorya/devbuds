@@ -1,5 +1,11 @@
 # Ten-Minute Mentor
 
+> **PS-first scope:** work now follows the supplied IM-104 statement, documented in [docs/problem-statement-scope.md](docs/problem-statement-scope.md). Voice logging and register downloads are connected using the existing style; optional PWA, threshold, weekly-review and analytics controls remain deferred. Live AI, a supplied college register sample, and real faculty/Android validation are still pending.
+
+> **Current interface:** frontend changes from this chat were reverted at the owner's request on 30 October 2026. Original screens and the pre-existing CSV import page are restored. New backend APIs, database changes, validation and security work remain; the new recording, export, completion, review, report and threshold controls and PWA were removed. The feature roadmap below is not a claim that those controls are currently present.
+
+> **Follow-up update:** completion controls have since been reconnected on the mentor follow-up list, mentor student profile and student action list using the existing theme and styles. They show saving/error feedback and refresh the list after completion. Other reverted frontend additions remain removed.
+
 > **Working title.** Rename freely.
 > Early warning and a light log for faculty mentors. Built for **Deviathon**, problem statement **IM-104** (Integraminds, Tech for Impact, Software track).
 
@@ -37,10 +43,10 @@ A **phone-first progressive web app (PWA)** with three role-based views:
 ### Definition of done (from the brief)
 
 - [ ] In a user test, a mentor reviews 20 mentees and logs 3 meetings in **under 10 minutes**.
-- [ ] Every alert names the signals behind it.
+- [x] Every alert names the signals behind it.
 - [ ] Tamil and English voice notes become structured logs with an action and a follow-up date.
 - [ ] The mentoring register is generated in the format of at least one of the three sample colleges.
-- [ ] Students see their own record, and no student sees anyone else's.
+- [x] Students see their own record, and no student sees anyone else's (server restrictions and isolated-role integration checks).
 
 ### How it is judged
 
@@ -115,7 +121,7 @@ Mentor navigation: bottom tabs **This Week · Students · Follow-ups**.
 
 ## 6. Tech stack (proposed)
 
-> Nothing has been locked yet. Confirm or change this in the first alignment session.
+> The original proposal is retained below. Current implementation and outstanding external inputs are tracked in [docs/implementation-status.md](docs/implementation-status.md).
 
 | Layer | Choice | Why |
 |---|---|---|
@@ -126,12 +132,12 @@ Mentor navigation: bottom tabs **This Week · Students · Follow-ups**.
 | **Backend** | Next.js route handlers (`src/app/api`) calling server-only modules, Zod for validation | Same language and types as the frontend, so API shapes cannot drift. |
 | **Database** | PostgreSQL with Drizzle or Prisma | Relational model fits students, meetings and follow-ups. |
 | **Data import** | CSV parser (e.g. Papa Parse) for the synthetic dataset, adapter for the ITLF classroom engagement export (sandbox) with CSV fallback | The brief supplies a dataset and a sandbox API. |
-| **Auth** | JWT with role claims (`MENTOR`, `STUDENT`, `HOD`) | Role checks happen server-side on every request. |
+| **Auth** | Signed JWT identity in an httpOnly cookie; current role loaded from PostgreSQL | Role and assignment checks happen server-side. |
 | **Speech-to-text** | To be chosen after a Tamil/English benchmark. Candidates include Sarvam AI, Whisper (hosted or self-run) and Google Speech-to-Text | Tamil accuracy, including Tamil-English mixed speech, decides this. |
 | **Note extraction** | LLM with JSON-schema output, validated with Zod | Structured, editable output with a safe failure path. |
 | **Register export** | `docx` and `exceljs` packages (PDF if the chosen format needs it) | Match one of the three supplied college formats exactly. |
 | **Testing** | Vitest, Playwright, Lighthouse, real-device check | Covers integration tests and the 10-minute user test. |
-| **Hosting** | Single deploy on Vercel (or any Node host), Postgres on Neon or Supabase (free tiers) | Quick to deploy for a 48-hour build. Transcription runs as upload then status polling, so request time limits do not matter. |
+| **Hosting** | One Next.js Node deployment and PostgreSQL | Short recordings use awaited provider requests with a 45-second timeout; the host must support the routes' 60-second duration and payload limits. |
 
 **Login for the demo:** mobile number plus OTP with a fixed test OTP. This is a stand-in. A real college deployment would use institutional email or SSO.
 
@@ -239,14 +245,51 @@ ten-minute-mentor/
 
 ## 13. Getting started
 
-> To be finalized once the project is scaffolded.
-
 ```bash
 npm install
+cp .env.example .env
+# Set DATABASE_URL and a random JWT_SECRET of at least 32 characters.
+npx prisma migrate deploy
+npm run db:seed
 npm run dev
 ```
 
+`db:seed` is for a disposable demo database; inspect it before running against existing data. On Windows use `Copy-Item .env.example .env` when creating a fresh environment. Do not overwrite existing secrets. For a production-build check run `npm run build`, then `npm run start -- --port 3001`. The application is not publicly deployed by these commands.
+
+### Remaining-step completion
+
+The backend provides persisted mentor/department alert settings, weekly review records, aggregate department coverage and academic trends, and performance Excel downloads. Login/AI requests have durable rate limits and important mutations write metadata-only audit events. Import supports up to 5000 rows and 3 MB per file. Mentoring register Word/Excel exports remain separate from performance reports. The frontend was subsequently reverted, so the added UI controls, browser PDF printing and PWA are not part of the current interface.
+
+See [implementation status](docs/implementation-status.md) for external prerequisites and [faculty acceptance test](docs/acceptance-test.md) for the ten-minute and real-device protocol. `npm run test:integration` verifies the running localhost app across mentor, student, HOD and cross-department boundaries with temporary fixtures. It requires demo mode and mocked AI providers.
+
 ---
+
+## Implemented backend logging, follow-ups and register downloads
+
+- Authorized mentor APIs accept Tamil/English audio uploads under 3 MB and produce an editable structured draft. Draft generation never creates a meeting. The new recording/draft interface was reverted; the original typed meeting form remains.
+- AI date phrases are resolved against the selected meeting date in code. Supported phrases include ISO dates, today/tomorrow, English weekdays, offsets such as "in 3 days", and common Tamil equivalents. Unsupported, ambiguous or missing dates stay blank and must be supplied by the mentor. Recording/transcription failures leave the manual form available; extraction failures retain the transcript. Unsaved drafts and recordings live only in the current tab.
+- The follow-up completion API allows mentors and students to complete authorized actions. Completion is timestamped and retry-safe. Mark complete buttons are now available on the original mentor and student screens with matching styles, saving/error states and retry support.
+- The register API generates Excel or Word files, optionally filtered by an inclusive date range. Only that mentor's confirmed meetings for currently assigned mentees are exported. Each action includes its due date and completion status. The added download controls were reverted. Files use a general template; matching a supplied college's exact format remains pending receipt of its sample. Original department summary CSVs are a separate feature.
+
+### AI configuration
+
+The `.env.example` defaults to explicitly labelled demo providers. Demo transcription inserts a sample rather than recognizing audio; demo extraction copies the note and leaves actions for manual entry. These providers run only with `DEMO_MODE=true`.
+
+To use real transcription and extraction, set these server-side variables in `.env` and restart the server:
+
+```dotenv
+TRANSCRIBER="openai"
+EXTRACTOR="openai"
+OPENAI_API_KEY="your-api-key"
+OPENAI_TRANSCRIPTION_MODEL="whisper-1"
+OPENAI_EXTRACTION_MODEL="gpt-4o-mini"
+```
+
+The integration uses OpenAI's [file transcription API](https://developers.openai.com/api/docs/guides/speech-to-text) and [structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat), with schema validation before displaying a draft. Models are configurable; choose a speech model with Tamil support and an extraction model supporting Chat Completions JSON-schema output. Recording requires HTTPS or localhost and microphone permission. Each speech/extraction request is awaited with a 45-second provider timeout; this implementation does not claim durable background processing. Hosting must support the routes' 60-second duration and audio payload size.
+
+The app does not write audio or unconfirmed transcripts to its database or filesystem, and extraction requests disable response storage. Audio/transcripts are sent to the configured provider; that provider's retention policy applies separately. Do not expose the API key using a `NEXT_PUBLIC_` variable. Live Tamil/mixed-speech accuracy and device timing still require testing with real clips and credentials.
+
+Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` to verify the implementation. Workflow tests use mocked database/provider boundaries; they do not call a live AI service or modify college data.
 
 ## Acknowledgements
 

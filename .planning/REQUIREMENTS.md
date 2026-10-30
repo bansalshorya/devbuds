@@ -1,26 +1,28 @@
 # Requirements: DevBuds
 
 **Defined:** 2026-10-29
+
+**Frontend rollback, 2026-10-30:** original screens and forms were restored at the owner's request. Backend endpoints below remain, but new settings, export, completion and review controls and the PWA have been removed. Backend implementation status does not imply the controls exist in the current UI.
 **Core Value:** Real-time Early Warning Engine flagging at-risk students and empowering mentors with actionable session logging and follow-ups.
 
 ## v1 Requirements
 
 ### Alerts & Early Warning
-- [ ] **ALERT-01**: Mentors can configure custom alert threshold rules for attendance, internal marks, and LMS activity
-- [ ] **ALERT-02**: System automatically dispatches notifications/badges for students crossing risk thresholds
-- [ ] **ALERT-03**: HOD dashboard displays aggregated department-wide at-risk student metrics
+- [ ] **ALERT-01**: Mentors can configure custom alert threshold rules for attendance, internal marks, and LMS activity — backend persistence retained; new frontend controls reverted
+- [x] **ALERT-02**: System automatically dispatches notifications/badges for students crossing risk thresholds — implemented as in-app badges on data load/refresh; external push notifications are not included
+- [ ] **ALERT-03**: HOD dashboard displays aggregated department-wide at-risk student metrics — aggregate API retained; original dashboard restored
 
 ### Analytics & Reporting
-- [ ] **RPT-01**: Mentors and HODs can export student performance and attendance reports to Excel/PDF
-- [ ] **RPT-02**: Department dashboard provides graphical trend analysis of student progress across semesters
+- [ ] **RPT-01**: Mentors and HODs can export student performance and attendance reports to Excel/PDF — Excel API retained; report/download/PDF UI reverted
+- [ ] **RPT-02**: Department dashboard provides graphical trend analysis of student progress across semesters — six calendar months and subject analytics are implemented; actual semester boundaries/data remain unavailable
 
 ### Student Portal & Interaction
-- [ ] **PORT-01**: Students can view their personal mentoring notes, session history, and pending follow-ups
-- [ ] **PORT-02**: Students can mark follow-up action items as completed or submit feedback
+- [x] **PORT-01**: Students can view their personal mentoring notes, session history, and pending follow-ups
+- [x] **PORT-02**: Students can mark follow-up action items as completed or submit feedback — completion API and matching-style buttons are connected for their own actions
 
 ### Quality & Testing
-- [ ] **TEST-01**: Comprehensive Vitest unit and integration test coverage for alert engine and server actions
-- [ ] **TEST-02**: End-to-end user workflow verification across mentor, student, and HOD roles
+- [x] **TEST-01**: Vitest covers all six alert rules, date handling, validation, authorization, exports, settings, reviews and offline cache privacy
+- [ ] **TEST-02**: Backend workflow verification remains; reverted UI and PWA assertions are no longer claimed as complete
 
 ## v2 Requirements
 
@@ -39,15 +41,15 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ALERT-01 | Phase 1 | Pending |
-| ALERT-02 | Phase 1 | Pending |
-| ALERT-03 | Phase 1 | Pending |
-| RPT-01 | Phase 2 | Pending |
-| RPT-02 | Phase 2 | Pending |
-| PORT-01 | Phase 3 | Pending |
-| PORT-02 | Phase 3 | Pending |
-| TEST-01 | Phase 4 | Pending |
-| TEST-02 | Phase 4 | Pending |
+| ALERT-01 | Phase 1 | Backend retained; settings UI reverted |
+| ALERT-02 | Phase 1 | Implemented: in-app badges |
+| ALERT-03 | Phase 1 | Aggregate API retained; original UI restored |
+| RPT-01 | Phase 2 | Excel API retained; new export/PDF UI reverted |
+| RPT-02 | Phase 2 | Partial: calendar-month trends; semester inputs pending |
+| PORT-01 | Phase 3 | Implemented |
+| PORT-02 | Phase 3 | Completion API and original-style buttons connected |
+| TEST-01 | Phase 4 | Automated checks passing |
+| TEST-02 | Phase 4 | 23 backend integration checks pass; new UI reverted |
 
 **Coverage:**
 - v1 requirements: 9 total
@@ -56,4 +58,4 @@
 
 ---
 *Requirements defined: 2026-10-29*
-*Last updated: 2026-10-29 after initial definition*
+*Last updated: 2026-10-30. See docs/implementation-status.md and docs/acceptance-test.md for external inputs and human validation still pending.*

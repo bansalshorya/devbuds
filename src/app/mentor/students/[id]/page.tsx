@@ -6,6 +6,8 @@ import { getStudentForMentor } from "@/server/alerts/attention";
 import { formatDate } from "@/lib/dates";
 import { Sparkline } from "@/components/Sparkline";
 import { LogForm } from "@/components/LogForm";
+import { CompleteFollowUpButton } from "@/components/CompleteFollowUpButton";
+import { RegisterDownload } from "@/components/RegisterDownload";
 import { ArrowLeft, Clock, Calendar, MessageSquare, BookOpen, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -157,6 +159,7 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
                   <p className="text-xs text-amber-800 mt-1.5 font-bold flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" /> Due {formatDate(f.dueDate)}
                   </p>
+                  <CompleteFollowUpButton id={f.id} action={f.action} />
                 </li>
               ))}
             </ul>
@@ -192,8 +195,9 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
           <h2 className="text-lg font-extrabold text-[#242924] flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-[#527A5B]" /> Log This Mentoring Session
           </h2>
-          <LogForm studentId={student.id} />
+          <LogForm studentId={student.id} speechDemo={process.env.TRANSCRIBER === "mock"} extractionDemo={process.env.EXTRACTOR === "mock"} />
         </section>
+        <RegisterDownload studentId={student.id} />
       </div>
     </main>
   );
