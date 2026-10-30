@@ -281,7 +281,7 @@ To use real transcription and extraction, set these server-side variables in `.e
 TRANSCRIBER="gemini"
 EXTRACTOR="gemini"
 GEMINI_API_KEY="your-google-ai-studio-key"
-GEMINI_MODEL="gemini-2.5-flash"
+GEMINI_MODEL="gemini-3.1-flash-lite"
 ```
 
 Create the key in [Google AI Studio](https://aistudio.google.com/api-keys). The integration uses Gemini's [audio understanding](https://ai.google.dev/gemini-api/docs/audio) and [structured outputs](https://ai.google.dev/gemini-api/docs/structured-output), with schema validation before displaying a draft. Audio clips are sent inline because this app limits them to 3 MB, below Gemini's documented 20 MB inline-request limit. Models are configurable with `GEMINI_MODEL`, or separately with `GEMINI_TRANSCRIPTION_MODEL` and `GEMINI_EXTRACTION_MODEL`. The previous OpenAI provider remains available by setting `TRANSCRIBER="openai"`, `EXTRACTOR="openai"`, and the corresponding OpenAI variables from `.env.example`.

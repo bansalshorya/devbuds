@@ -60,7 +60,7 @@ describe("AI draft safety and fallback", () => {
     vi.stubGlobal("fetch", request);
     const result = await transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "Tamil");
     expect(result).toEqual({ demo: false, transcript: "வருகை குறித்து பேசினோம்." });
-    expect(request.mock.calls[0][0]).toContain("gemini-2.5-flash:generateContent");
+    expect(request.mock.calls[0][0]).toContain("gemini-3.1-flash-lite:generateContent");
     expect(request.mock.calls[0][1].headers["x-goog-api-key"]).toBe("test-key");
     const body = JSON.parse(request.mock.calls[0][1].body as string);
     expect(body.contents[0].parts[0].text).toContain("Preserve Tamil, English, and any code-switching");
@@ -74,6 +74,32 @@ describe("AI draft safety and fallback", () => {
     expect(result.demo).toBe(false);
     expect(request.mock.calls[0][0]).toBe("https://api.openai.com/v1/audio/transcriptions");
     expect((request.mock.calls[0][1].body as FormData).get("language")).toBe("ta");
+  });
+  it.each([
+    [400, "API_KEY_INVALID", "rejected the API key"],
+    [401, undefined, "rejected the API key"],
+    [403, undefined, "denied access"],
+    [404, undefined, "model is unavailable"],
+    [429, undefined, "rate limit or quota"],
+    [400, undefined, "rejected the request"],
+    [503, undefined, "temporarily unavailable"],
+  ])("explains Gemini HTTP %s failures without leaking provider details", async (status, reason, message) => {
+    vi.stubEnv("TRANSCRIBER", "gemini"); vi.stubEnv("GEMINI_API_KEY", "test-key");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ error: {
+      message: "Sensitive provider details: test-key", details: [{ reason }],
+    } }, { status })));
+    const error = await transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "English").catch((error: Error) => error);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toContain(message);
+    expect((error as Error).message).not.toContain("test-key");
+  });
+  it.each([
+    [new TypeError("fetch failed"), "internet connection"],
+    [new DOMException("Timed out", "TimeoutError"), "timed out"],
+  ])("explains Gemini connection failures", async (error, message) => {
+    vi.stubEnv("TRANSCRIBER", "gemini"); vi.stubEnv("GEMINI_API_KEY", "test-key");
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(error));
+    await expect(transcribe(new File(["clip"], "clip.webm", { type: "audio/webm" }), "English")).rejects.toThrow(message);
   });
   it("validates provider structured output and handles refusals", async () => {
     vi.stubEnv("EXTRACTOR", "openai"); vi.stubEnv("OPENAI_API_KEY", "test-key");
