@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import SmoothButton from "@/components/ui/smoothui/smooth-button";
-import { Mic, FileText, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mic, FileText, Calendar, CheckCircle2, AlertCircle, ChevronDown, Check } from "lucide-react";
 import { VoiceDraftInput } from "@/components/VoiceDraftInput";
 import { MeetingSaveSchema } from "@/lib/schemas";
 
@@ -14,14 +14,27 @@ function makeId() {
 
 export function LogForm({ studentId, speechDemo = false, extractionDemo = false }: { studentId: string; speechDemo?: boolean; extractionDemo?: boolean }) {
   const router = useRouter();
-  const idRef = useRef(makeId()); // same id on retry, so no duplicate meeting
+  const idRef = useRef(makeId());
   const [language, setLanguage] = useState<"English" | "Tamil">("English");
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
   const [summary, setSummary] = useState("");
   const [actions, setActions] = useState([{ action: "", dueDate: "" }]);
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceKey, setVoiceKey] = useState(0);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -57,20 +70,45 @@ export function LogForm({ studentId, speechDemo = false, extractionDemo = false 
 
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
-      <div>
-        <label htmlFor="note-output-language" className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+      <div className="relative" ref={langRef}>
+        <label id="output-language-label" className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
           <Mic className="h-4 w-4 text-teal-700" /> Output language
         </label>
-        <select
-          id="note-output-language"
-          value={language}
+        <button
+          type="button"
+          aria-expanded={langOpen}
+          aria-labelledby="output-language-label"
           disabled={voiceBusy || status === "saving"}
-          onChange={(e) => setLanguage(e.target.value as "English" | "Tamil")}
-          className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-semibold text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
+          onClick={() => setLangOpen(!langOpen)}
+          className="mt-1 flex h-12 w-full items-center justify-between rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-semibold text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4] disabled:opacity-60 cursor-pointer"
         >
-          <option>English</option>
-          <option>Tamil</option>
-        </select>
+          <span>{language}</span>
+          <ChevronDown className={`h-4 w-4 text-slate-600 transition-transform ${langOpen ? "rotate-180" : ""}`} />
+        </button>
+
+        {langOpen && (
+          <div className="absolute left-0 right-0 mt-2 rounded-2xl bg-white shadow-xl border border-slate-200 z-50 p-1.5 space-y-1 animate-fadeIn">
+            {(["English", "Tamil"] as const).map((opt) => {
+              const isSelected = language === opt;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => {
+                    setLanguage(opt);
+                    setLangOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-bold transition-colors cursor-pointer ${
+                    isSelected ? "bg-[#E5F3E8] text-slate-900 shadow-xs" : "text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  <span>{opt}</span>
+                  {isSelected && <Check className="h-4 w-4 text-teal-700" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <p className="mt-1.5 text-xs text-[#5F6962]">Speak in Tamil, English, or a mix. The transcript and generated draft will use the selected language. After changing it, transcribe again to update the transcript.</p>
       </div>
 
@@ -121,7 +159,7 @@ export function LogForm({ studentId, speechDemo = false, extractionDemo = false 
           className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-medium text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         />
       </div>
-      {actions.length > 1 && <button type="button" className="min-h-12 px-3 text-sm font-semibold text-red-800" onClick={() => setActions((previous) => previous.filter((_, i) => i !== index))}>Remove action {index + 1}</button>}
+      {actions.length > 1 && <button type="button" className="min-h-12 px-3 text-sm font-semibold text-red-800 cursor-pointer" onClick={() => setActions((previous) => previous.filter((_, i) => i !== index))}>Remove action {index + 1}</button>}
       </fieldset>)}
 
       <p className="text-xs text-[#5F6962]">Review and confirm the summary, agreed actions and dates. Only Save conversation creates the meeting record.</p>
@@ -132,19 +170,24 @@ export function LogForm({ studentId, speechDemo = false, extractionDemo = false 
         </div>
       )}
       {status === "saved" && (
-        <div role="status" className="rounded-xl bg-emerald-100 border border-emerald-300 p-3.5 text-sm font-extrabold text-emerald-900 flex items-center gap-2 shadow-xs animate-fadeIn">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" /> Conversation saved successfully!
+        <div role="status" className="rounded-xl bg-emerald-100 border border-emerald-300 p-3.5 text-sm font-bold text-emerald-800 flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="h-4 w-4 shrink-0" /> Meeting recorded and saved successfully.
         </div>
       )}
 
-      <SmoothButton
-        type="submit"
-        disabled={voiceBusy || status === "saving"}
-        loading={status === "saving"}
-        className="h-12 w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-base font-extrabold text-white shadow-md active:scale-[0.98] transition-all mt-2"
-      >
-        {status === "saving" ? "Saving record..." : "Save conversation"}
-      </SmoothButton>
+      <div className="flex items-center gap-3 pt-2">
+        <SmoothButton type="submit" disabled={voiceBusy || status === "saving"} className="h-12 flex-1 rounded-xl bg-[#527A5B] font-bold text-white shadow-md hover:bg-[#42664A] disabled:opacity-50 cursor-pointer">
+          {status === "saving" ? "Saving conversation..." : "Save conversation"}
+        </SmoothButton>
+        <button
+          type="button"
+          disabled={voiceBusy || status === "saving"}
+          onClick={() => { setSummary(""); setActions([{ action: "", dueDate: "" }]); setStatus("idle"); setError(""); }}
+          className="h-12 px-5 rounded-xl border border-slate-300 bg-white font-bold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer disabled:opacity-50"
+        >
+          Reset
+        </button>
+      </div>
     </form>
   );
 }
