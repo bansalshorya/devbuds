@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   description: "Faculty mentoring and student tracking application",
   applicationName: "Ten-Minute Mentor",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -43,5 +48,3 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     </html>
   );
 }
-
-

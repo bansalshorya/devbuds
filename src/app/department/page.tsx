@@ -41,7 +41,7 @@ async function Coverage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50/70 pb-16">
+    <div className="min-h-screen bg-slate-50/70 pb-16 overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur-md shadow-xs">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-8 py-4">
@@ -63,7 +63,7 @@ async function Coverage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 sm:px-8 pt-8 space-y-8">
+      <main className="mx-auto max-w-6xl px-4 sm:px-8 pt-8 space-y-8 w-full min-w-0">
         <Link href="/automations" className="flex min-h-12 items-center justify-between rounded-xl border border-[#B5C9B9] bg-[#E5F3E8] px-4 text-sm font-bold text-[#42664A]">Automation Hub · scheduling, data checks &amp; monitoring <span aria-hidden>→</span></Link>
         {/* Banner with period and privacy note */}
         <Card className="p-6 bg-white shadow-xs rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -139,9 +139,13 @@ async function Coverage() {
             </h2>
             <p className="mt-1 text-sm text-slate-600">Add faculty individually or import student and faculty accounts in bulk.</p>
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs"><AddFacultyForm /></Card>
-            <Card className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs"><DepartmentCsvImport /></Card>
+          <div className="grid gap-6 grid-cols-1 xl:grid-cols-2 items-start min-w-0 w-full">
+            <div className="min-w-0 w-full">
+              <AddFacultyForm />
+            </div>
+            <div className="min-w-0 w-full">
+              <DepartmentCsvImport />
+            </div>
           </div>
         </section>
 
