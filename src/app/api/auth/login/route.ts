@@ -2,6 +2,8 @@ import { prisma } from "@/server/db/client";
 import { createSession } from "@/server/auth/session";
 import { sameOrigin } from "@/server/auth/origin";
 import { LoginSchema } from "@/lib/schemas";
+import { allowRequest } from "@/server/security/rate-limit";
+import { audit } from "@/server/audit";
 
 export async function POST(req: Request) {
   if (process.env.DEMO_MODE !== "true") {
@@ -15,10 +17,12 @@ export async function POST(req: Request) {
     return Response.json({ error: "Enter a 10 digit mobile number and the OTP" }, { status: 400 });
   }
   const { mobile, otp } = parsed.data;
+  if (!await allowRequest("login", mobile, 10, 900)) return Response.json({ error: "Too many login attempts. Try again in 15 minutes." }, { status: 429, headers: { "Retry-After": "900", "Cache-Control": "private, no-store" } });
   const user = await prisma.user.findUnique({ where: { mobile } });
   if (!user || otp !== process.env.DEMO_OTP) {
     return Response.json({ error: "Mobile number or OTP is not correct" }, { status: 401 });
   }
   await createSession(user.id);
+  await audit(user.id, "session.login", user.id);
   return Response.json({ role: user.role });
 }

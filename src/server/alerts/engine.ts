@@ -1,6 +1,6 @@
 import type { AlertResult } from "../../lib/schemas";
 import { formatDate } from "../../lib/dates";
-import { ALERT_CONFIG as C } from "./config";
+import { ALERT_CONFIG, type AlertConfig } from "./config";
 
 export type StudentSignals = {
   studentId: string;
@@ -12,7 +12,7 @@ export type StudentSignals = {
   followUps: { id: string; action: string; dueDate: Date; completedAt: Date | null }[];
 };
 
-type Rule = (s: StudentSignals, today: Date) => AlertResult | null;
+type Rule = (s: StudentSignals, today: Date, config: AlertConfig) => AlertResult | null;
 
 const DAY = 24 * 60 * 60 * 1000;
 const daysBetween = (from: Date, to: Date) => Math.floor((to.getTime() - from.getTime()) / DAY);
@@ -21,7 +21,7 @@ const latest = (dates: Date[]) => new Date(Math.max(...dates.map((d) => d.getTim
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 // Rule 1: low attendance in one or more subjects.
-const lowAttendance: Rule = (s) => {
+const lowAttendance: Rule = (s, _today, C) => {
   if (s.attendance.length === 0) return null; // no data is not the same as poor attendance
   const totals = new Map<string, { a: number; t: number }>();
   for (const r of s.attendance) {
@@ -47,7 +47,7 @@ const lowAttendance: Rule = (s) => {
 };
 
 // Rule 2: sharp attendance drop (last 3 weeks vs the 3 weeks before).
-const attendanceDrop: Rule = (s) => {
+const attendanceDrop: Rule = (s, _today, C) => {
   const weeks = new Map<number, { a: number; t: number }>();
   for (const r of s.attendance) {
     const key = r.weekStart.getTime();
@@ -80,7 +80,7 @@ const attendanceDrop: Rule = (s) => {
 };
 
 // Rule 3: internal marks decline (last two tests per subject, compared as percentages).
-const marksDecline: Rule = (s) => {
+const marksDecline: Rule = (s, _today, C) => {
   const bySubject = new Map<string, StudentSignals["marks"]>();
   for (const m of s.marks) bySubject.set(m.subject, [...(bySubject.get(m.subject) ?? []), m]);
   const declines: { subject: string; points: number; text: string; at: Date }[] = [];
@@ -115,7 +115,7 @@ const marksDecline: Rule = (s) => {
 };
 
 // Rule 4: LMS inactivity.
-const lmsInactive: Rule = (s, today) => {
+const lmsInactive: Rule = (s, today, C) => {
   if (s.lmsDates.length === 0) return null; // no LMS data: do not guess
   const last = latest(s.lmsDates);
   const days = daysBetween(last, today);
@@ -147,7 +147,7 @@ const overdueFollowUp: Rule = (s, today) => {
 };
 
 // Rule 6: not met recently.
-const notMetRecently: Rule = (s, today) => {
+const notMetRecently: Rule = (s, today, C) => {
   if (s.meetings.length === 0) {
     return {
       ruleId: "not-met",
@@ -171,8 +171,8 @@ const notMetRecently: Rule = (s, today) => {
 
 const RULES: Rule[] = [lowAttendance, attendanceDrop, marksDecline, lmsInactive, overdueFollowUp, notMetRecently];
 
-export function evaluateStudent(s: StudentSignals, today: Date = new Date()): AlertResult[] {
-  return RULES.map((rule) => rule(s, today)).filter((a): a is AlertResult => a !== null);
+export function evaluateStudent(s: StudentSignals, today: Date = new Date(), config: AlertConfig = ALERT_CONFIG): AlertResult[] {
+  return RULES.map((rule) => rule(s, today, config)).filter((a): a is AlertResult => a !== null);
 }
 
 const RANK = { high: 3, medium: 2, low: 1 } as const;

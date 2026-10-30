@@ -3,7 +3,10 @@ import { cookies } from "next/headers";
 import { prisma } from "@/server/db/client";
 
 const COOKIE = "tmm_session";
-const secret = () => new TextEncoder().encode(process.env.JWT_SECRET);
+const secret = () => {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) throw new Error("JWT_SECRET must contain at least 32 characters");
+  return new TextEncoder().encode(process.env.JWT_SECRET);
+};
 
 export async function createSession(userId: string) {
   const token = await new SignJWT({})

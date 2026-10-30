@@ -3,77 +3,39 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import SmoothButton from "@/components/ui/smoothui/smooth-button";
-import { Mic, FileText, Calendar, CheckCircle2, AlertCircle, Square, WandSparkles } from "lucide-react";
+import { Mic, FileText, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
+import { VoiceDraftInput } from "@/components/VoiceDraftInput";
+import { MeetingSaveSchema } from "@/lib/schemas";
 
 function makeId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function LogForm({ studentId }: { studentId: string }) {
+export function LogForm({ studentId, speechDemo = false, extractionDemo = false }: { studentId: string; speechDemo?: boolean; extractionDemo?: boolean }) {
   const router = useRouter();
   const idRef = useRef(makeId()); // same id on retry, so no duplicate meeting
   const [language, setLanguage] = useState<"English" | "Tamil">("English");
   const [summary, setSummary] = useState("");
-  const [action, setAction] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const [actions, setActions] = useState([{ action: "", dueDate: "" }]);
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const [voiceKey, setVoiceKey] = useState(0);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
-  const [mockState, setMockState] = useState<"idle" | "recording" | "processing" | "draft">("idle");
-  const [mockTranscript, setMockTranscript] = useState("");
-
-  function mockContent() {
-    if (language === "Tamil") {
-      return {
-        transcript: "DBMS வருகைப்பதிவு மற்றும் வரவிருக்கும் உள்ளகத் தேர்வு பற்றி பேசினோம். நிலுவையில் உள்ள பணியை முடித்து அடுத்த வார திருத்த வகுப்பில் கலந்து கொள்வதாக மாணவர் ஒப்புக்கொண்டார்.",
-        summary: "DBMS வருகைப்பதிவு, நிலுவைப் பணி மற்றும் உள்ளகத் தேர்வுக்கான தயாரிப்பு குறித்து பேசப்பட்டது.",
-        action: "நிலுவையில் உள்ள DBMS பணியை முடித்து திருத்த வகுப்பில் கலந்துகொள்ள வேண்டும்",
-      };
-    }
-    return {
-      transcript: "We discussed DBMS attendance and the upcoming internal assessment. The student agreed to complete the pending assignment and attend the remedial class next week.",
-      summary: "Discussed DBMS attendance, the pending assignment and preparation for the upcoming internal assessment.",
-      action: "Complete the pending DBMS assignment and attend the remedial class",
-    };
-  }
-
-  async function handleMockRecording() {
-    if (mockState !== "recording") {
-      setMockTranscript("");
-      setMockState("recording");
-      return;
-    }
-
-    setMockState("processing");
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    const draft = mockContent();
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    setMockTranscript(draft.transcript);
-    setSummary(draft.summary);
-    setAction(draft.action);
-    setDueDate(nextWeek.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }));
-    setMockState("draft");
-  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setStatus("saving");
+    if (voiceBusy || status === "saving") return;
     setError("");
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const parsed = MeetingSaveSchema.safeParse({ clientSubmissionId: idRef.current, studentId, meetingDate: today, language, summary, topics: [], actions });
+    if (!parsed.success) { setError(parsed.error.issues[0].message); setStatus("error"); return; }
+    setStatus("saving");
     try {
       const res = await fetch("/api/mentor/meetings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          clientSubmissionId: idRef.current,
-          studentId,
-          meetingDate: today,
-          language,
-          summary,
-          topics: [],
-          actions: [{ action, dueDate }],
-        }),
+        body: JSON.stringify(parsed.data),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -82,10 +44,8 @@ export function LogForm({ studentId }: { studentId: string }) {
         return;
       }
       setSummary("");
-      setAction("");
-      setDueDate("");
-      setMockState("idle");
-      setMockTranscript("");
+      setActions([{ action: "", dueDate: "" }]);
+      setVoiceKey((previous) => previous + 1);
       idRef.current = makeId();
       setStatus("saved");
       router.refresh();
@@ -98,117 +58,88 @@ export function LogForm({ studentId }: { studentId: string }) {
   return (
     <form onSubmit={onSubmit} className="mt-3 space-y-4">
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <Mic className="h-4 w-4 text-teal-700" /> Language spoken
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <Mic className="h-4 w-4 text-teal-700" /> Language Spoken
         </label>
         <select
           value={language}
-          onChange={(e) => {
-            setLanguage(e.target.value as "English" | "Tamil");
-            setMockState("idle");
-            setMockTranscript("");
-          }}
-          className="mt-1 block h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-base font-medium text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          disabled={voiceBusy || status === "saving"}
+          onChange={(e) => setLanguage(e.target.value as "English" | "Tamil")}
+          className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-semibold text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         >
           <option>English</option>
           <option>Tamil</option>
         </select>
       </div>
 
+      <VoiceDraftInput key={voiceKey} studentId={studentId} language={language} disabled={status === "saving"}
+        speechDemo={speechDemo} extractionDemo={extractionDemo} onBusyChange={setVoiceBusy}
+        onDraft={(draft) => { setSummary(draft.summary); setActions(draft.actions.length ? draft.actions.map((item) => ({ action: item.action, dueDate: item.dueDate ?? "" })) : [{ action: "", dueDate: "" }]); setStatus("idle"); }} />
+
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <FileText className="h-4 w-4 text-teal-700" /> What was discussed
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <FileText className="h-4 w-4 text-teal-700" /> What Was Discussed
         </label>
         <textarea
           required
+          maxLength={2000}
+          disabled={voiceBusy || status === "saving"}
           rows={4}
           placeholder="Record notes from the mentoring conversation..."
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
-          className="mt-1 block w-full rounded-xl border border-slate-300 bg-white p-3.5 text-base font-normal text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          className="mt-1 block w-full rounded-xl neumo-inset border border-slate-300 p-3.5 text-base font-medium text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         />
       </div>
 
+      {actions.map((item, index) => <fieldset key={index} disabled={voiceBusy || status === "saving"} className="min-w-0 space-y-4">
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <CheckCircle2 className="h-4 w-4 text-teal-700" /> Agreed action
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <CheckCircle2 className="h-4 w-4 text-teal-700" /> Agreed Action Item {actions.length > 1 ? index + 1 : ""}
         </label>
         <input
           required
+          maxLength={300}
           placeholder="e.g. Complete assignment 3 by Friday"
-          value={action}
-          onChange={(e) => setAction(e.target.value)}
-          className="mt-1 block h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-base text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          value={item.action}
+          onChange={(e) => setActions((previous) => previous.map((row, i) => i === index ? { ...row, action: e.target.value } : row))}
+          className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-medium text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-slate-800 mb-1.5 flex items-center gap-1.5">
-          <Calendar className="h-4 w-4 text-teal-700" /> Follow-up date
+        <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+          <Calendar className="h-4 w-4 text-teal-700" /> Follow-up Target Date
         </label>
         <input
           required
           type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className="mt-1 block h-12 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-base text-slate-900 shadow-2xs focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20"
+          value={item.dueDate}
+          onChange={(e) => setActions((previous) => previous.map((row, i) => i === index ? { ...row, dueDate: e.target.value } : row))}
+          className="mt-1 block h-12 w-full rounded-xl neumo-inset border border-slate-300 px-3.5 text-base font-medium text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-3 focus:ring-teal-700/20 transition-all bg-[#e6edf4]"
         />
       </div>
+      {actions.length > 1 && <button type="button" className="min-h-12 px-3 text-sm font-semibold text-red-800" onClick={() => setActions((previous) => previous.filter((_, i) => i !== index))}>Remove action {index + 1}</button>}
+      </fieldset>)}
 
-      <div className="rounded-2xl border border-dashed border-teal-300 bg-teal-50/50 p-4 space-y-3">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <p className="flex items-center gap-1.5 text-sm font-extrabold text-slate-900">
-              <Mic className="h-4 w-4 text-teal-700" /> Mock voice demo
-            </p>
-            <p className="mt-1 text-xs font-semibold text-teal-900">Demo only — no microphone audio is captured or sent.</p>
-          </div>
-          <span className="rounded-full border border-teal-200 bg-white px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-teal-800">Mock STT</span>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleMockRecording}
-          disabled={mockState === "processing"}
-          className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-white transition disabled:opacity-60 ${mockState === "recording" ? "bg-red-600 hover:bg-red-700" : "bg-teal-700 hover:bg-teal-800"}`}
-        >
-          {mockState === "recording" ? <Square className="h-4 w-4 fill-current" /> : <Mic className="h-4 w-4" />}
-          {mockState === "recording" ? "Stop mock recording" : mockState === "processing" ? "Creating mock transcript..." : "Record mock voice note"}
-        </button>
-
-        {mockState === "recording" ? (
-          <p role="status" className="flex items-center justify-center gap-2 text-sm font-bold text-red-700">
-            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-600" /> Mock recording in progress
-          </p>
-        ) : null}
-
-        {mockTranscript ? (
-          <div className="space-y-2 rounded-xl border border-teal-200 bg-white p-3.5">
-            <p className="text-[10px] font-extrabold uppercase tracking-wider text-teal-800">Mock transcript — not real speech-to-text</p>
-            <p lang={language === "Tamil" ? "ta" : "en"} className="text-sm leading-relaxed text-slate-700">{mockTranscript}</p>
-            <p className="flex items-center gap-1.5 border-t border-slate-100 pt-2 text-xs font-bold text-emerald-700">
-              <WandSparkles className="h-3.5 w-3.5" /> Editable draft filled into the form above. Review it before saving.
-            </p>
-          </div>
-        ) : null}
-      </div>
+      <p className="text-xs text-[#5F6962]">Review and confirm the summary, agreed actions and dates. Only Save conversation creates the meeting record.</p>
 
       {status === "error" && (
-        <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3.5 text-sm font-medium text-red-700 flex items-center gap-2">
+        <div role="alert" className="rounded-xl bg-red-100 border border-red-300 p-3.5 text-sm font-bold text-red-800 flex items-center gap-2 shadow-xs">
           <AlertCircle className="h-4 w-4 shrink-0" /> {error}
         </div>
       )}
       {status === "saved" && (
-        <div role="status" className="rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-sm font-semibold text-emerald-800 flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> Conversation saved successfully!
+        <div role="status" className="rounded-xl bg-emerald-100 border border-emerald-300 p-3.5 text-sm font-extrabold text-emerald-900 flex items-center gap-2 shadow-xs animate-fadeIn">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" /> Conversation saved successfully!
         </div>
       )}
 
       <SmoothButton
         type="submit"
-        disabled={status === "saving"}
+        disabled={voiceBusy || status === "saving"}
         loading={status === "saving"}
-        className="h-12 w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-base font-semibold text-white shadow-md shadow-teal-700/20 transition-all mt-2"
+        className="h-12 w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-base font-extrabold text-white shadow-md active:scale-[0.98] transition-all mt-2"
       >
         {status === "saving" ? "Saving record..." : "Save conversation"}
       </SmoothButton>

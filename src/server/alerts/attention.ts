@@ -1,6 +1,8 @@
 import { prisma } from "@/server/db/client";
 import { evaluateStudent, sortByAttention } from "@/server/alerts/engine";
 import type { AlertResult } from "@/lib/schemas";
+import { getThresholds } from "./settings";
+import { kolkataDate } from "@/lib/weeks";
 
 export type StudentRow = {
   studentId: string;
@@ -13,6 +15,7 @@ export type StudentRow = {
 
 // Only students assigned to this mentor are ever loaded.
 export async function getMentorStudents(mentorId: string): Promise<StudentRow[]> {
+  const config = await getThresholds(mentorId);
   const assignments = await prisma.mentorAssignment.findMany({
     where: { mentorId },
     include: {
@@ -21,7 +24,7 @@ export async function getMentorStudents(mentorId: string): Promise<StudentRow[]>
       },
     },
   });
-  const today = new Date();
+  const today = kolkataDate();
   const rows = assignments.map(({ student: s }) => {
     const alerts = evaluateStudent(
       {
@@ -33,7 +36,7 @@ export async function getMentorStudents(mentorId: string): Promise<StudentRow[]>
         meetings: s.meetings,
         followUps: s.followUps,
       },
-      today
+      today, config
     );
     const lastMet = s.meetings.length
       ? new Date(Math.max(...s.meetings.map((m) => m.meetingDate.getTime())))
@@ -62,6 +65,7 @@ export async function getStudentForMentor(mentorId: string, studentId: string) {
   });
   if (!assignment) return null;
   const s = assignment.student;
+  const config = await getThresholds(mentorId);
 
   const alerts = evaluateStudent({
     studentId: s.id,
@@ -71,7 +75,7 @@ export async function getStudentForMentor(mentorId: string, studentId: string) {
     lmsDates: s.lmsActivity.map((l) => l.activityOn),
     meetings: s.meetings,
     followUps: s.followUps,
-  });
+  }, kolkataDate(), config);
 
   const weekly = new Map<number, { a: number; t: number }>();
   for (const r of s.attendance) {

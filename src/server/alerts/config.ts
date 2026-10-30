@@ -12,3 +12,5 @@ export const ALERT_CONFIG = {
   notMetWeeks: 5,
   longNotMetWeeks: 8,
 };
+
+export type AlertConfig = typeof ALERT_CONFIG;

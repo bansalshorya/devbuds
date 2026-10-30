@@ -14,23 +14,26 @@ enum Role {
 }
 
 model Department {
-  id       String    @id @default(cuid())
-  name     String
-  users    User[]
-  students Student[]
+  id              String    @id @default(cuid())
+  name            String
+  users           User[]
+  students        Student[]
+  alertThresholds Json?
 }
 
 model User {
-  id           String             @id @default(cuid())
-  name         String
-  mobile       String             @unique
-  role         Role
-  departmentId String
-  department   Department         @relation(fields: [departmentId], references: [id])
-  student      Student?
-  assignments  MentorAssignment[]
-  meetings     Meeting[]
-  followUps    FollowUp[]
+  id              String             @id @default(cuid())
+  name            String
+  mobile          String             @unique
+  role            Role
+  departmentId    String
+  department      Department         @relation(fields: [departmentId], references: [id])
+  student         Student?
+  assignments     MentorAssignment[]
+  meetings        Meeting[]
+  followUps       FollowUp[]
+  alertThresholds Json?
+  reviews         WeeklyReview[]
 }
 
 model Student {
@@ -46,6 +49,38 @@ model Student {
   lmsActivity  LmsActivity[]
   meetings     Meeting[]
   followUps    FollowUp[]
+  reviews      WeeklyReview[]
+}
+
+model WeeklyReview {
+  id         String   @id @default(cuid())
+  mentorId   String
+  mentor     User     @relation(fields: [mentorId], references: [id])
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+  weekStart  DateTime @db.Date
+  reviewedAt DateTime @default(now())
+
+  @@unique([mentorId, studentId, weekStart])
+  @@index([mentorId, weekStart])
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(1)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  recordId  String
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt])
 }
 
 model MentorAssignment {
@@ -130,4 +165,4 @@ model FollowUp {
 
   @@index([studentId])
   @@index([mentorId])
-} 
+}

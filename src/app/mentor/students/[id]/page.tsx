@@ -6,17 +6,19 @@ import { getStudentForMentor } from "@/server/alerts/attention";
 import { formatDate } from "@/lib/dates";
 import { Sparkline } from "@/components/Sparkline";
 import { LogForm } from "@/components/LogForm";
-import { ArrowLeft, Clock, Calendar, MessageSquare, BookOpen, AlertTriangle } from "lucide-react";
+import { CompleteFollowUpButton } from "@/components/CompleteFollowUpButton";
+import { RegisterDownload } from "@/components/RegisterDownload";
+import { ArrowLeft, Clock, Calendar, MessageSquare, BookOpen, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-        <div className="flex items-center gap-3 rounded-2xl bg-white px-6 py-4 shadow-sm border border-slate-200">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-teal-700 border-t-transparent" />
-          <p className="text-base text-slate-700 font-medium">Loading student profile...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#F6F8F6] text-[#242924] p-4">
+        <div className="flex items-center gap-3 rounded-2xl neumo-card px-6 py-4 bg-[#FFFFFF] border-[#DCE4DD]">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#527A5B] border-t-transparent" />
+          <p className="text-base text-[#242924] font-semibold">Loading student profile...</p>
         </div>
       </div>
     }>
@@ -25,11 +27,11 @@ export default function StudentProfilePage({ params }: { params: Promise<{ id: s
   );
 }
 
-const DOT = { high: "bg-red-600", medium: "bg-amber-500", low: "bg-yellow-400" } as const;
+const DOT = { high: "bg-red-600", medium: "bg-amber-500", low: "bg-[#737D76]" } as const;
 const PRIORITY_BADGE = {
-  high: "bg-red-50 text-red-700 border-red-200",
-  medium: "bg-amber-50 text-amber-700 border-amber-200",
-  low: "bg-slate-100 text-slate-700 border-slate-200",
+  high: "bg-red-50 text-red-800 border-red-200 font-bold",
+  medium: "bg-amber-50 text-amber-900 border-amber-200 font-semibold",
+  low: "bg-[#EEF2EF] text-[#5F6962] border-[#DCE4DD] font-medium",
 } as const;
 
 async function Profile({ params }: { params: Promise<{ id: string }> }) {
@@ -38,7 +40,7 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
   if (!user || user.role !== "MENTOR") redirect("/login");
 
   const data = await getStudentForMentor(user.id, id);
-  if (!data) notFound(); // not assigned to this mentor, or does not exist
+  if (!data) notFound();
 
   const { student, alerts, weeklyAttendance } = data;
 
@@ -48,46 +50,58 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <main className="mx-auto max-w-md sm:max-w-xl pb-16 bg-slate-50/70 min-h-screen">
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3.5 flex items-center justify-between shadow-xs">
-        <Link href="/mentor" className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:text-teal-900 transition-colors">
+    <main className="mx-auto max-w-md sm:max-w-2xl pb-24 min-h-screen bg-[#F6F8F6] text-[#242924]">
+      {/* Header */}
+      <div className="sticky top-0 z-25 bg-[#F6F8F6]/95 backdrop-blur-md border-b border-[#DCE4DD] px-4 py-3.5 sm:px-6 flex items-center justify-between shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+        <Link
+          href="/mentor"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-[#527A5B] hover:text-[#42664A] active:scale-[0.98] transition-all"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to This Week
         </Link>
-        <Badge variant="secondary" className="font-mono bg-slate-100 text-slate-700 border-slate-200 text-xs">
+        <Badge variant="secondary" className="font-mono bg-[#EEF2EF] text-[#242924] border-[#DCE4DD] text-xs font-bold">
           {student.rollNo}
         </Badge>
       </div>
 
-      <div className="px-4 pt-5">
-        <Card className="bg-white p-5 shadow-xs border border-slate-200/80 rounded-2xl">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">{student.user.name}</h1>
-          <p className="text-sm text-slate-500 mt-0.5 font-medium">Roll No: <span className="text-slate-800 font-semibold">{student.rollNo}</span></p>
-        </Card>
-      </div>
+      <div className="px-4 sm:px-6 pt-6 space-y-6">
+        {/* Student Name & Card */}
+        <div className="neumo-card p-6 bg-gradient-to-br from-[#FFFFFF] via-[#E5F3E8] to-[#FFFFFF] border-[#DCE4DD]">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#242924] tracking-tight">{student.user.name}</h1>
+            <Badge className="bg-[#527A5B] text-[#FFFFFF] font-bold shadow-xs">Active Mentee</Badge>
+          </div>
+          <p className="text-xs sm:text-sm text-[#5F6962] mt-1 font-semibold">
+            Roll Number: <span className="font-mono font-bold text-[#242924]">{student.rollNo}</span> · Department ID: <span className="font-mono text-[#5F6962]">{student.departmentId}</span>
+          </p>
+        </div>
 
-      <div className="px-4 space-y-5 pt-5">
-        {/* Why this student */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-            <AlertTriangle className="h-4 w-4 text-amber-600" /> Why this student needs attention
+        {/* Why this student needs attention */}
+        <section className="neumo-card p-6 space-y-4">
+          <h2 className="text-xs font-extrabold text-[#5F6962] uppercase tracking-wider flex items-center gap-1.5">
+            <ShieldAlert className="h-4 w-4 text-amber-600" /> Attention & Early Warnings ({alerts.length})
           </h2>
           {alerts.length === 0 ? (
-            <p className="py-2 text-sm text-slate-700 font-medium">No concerns right now. Student is on track.</p>
+            <div className="neumo-inset p-4 text-center border-emerald-300 bg-emerald-50/50">
+              <CheckCircle2 className="mx-auto h-5 w-5 text-emerald-600 mb-1" />
+              <p className="text-sm font-bold text-[#242924]">No active alerts. Student is on track.</p>
+              <p className="text-xs text-[#5F6962] mt-0.5 font-semibold">All attendance and marks benchmarks are met.</p>
+            </div>
           ) : (
             <ul className="space-y-3">
               {alerts.map((a) => {
                 const badgeStyle = PRIORITY_BADGE[a.severity] || PRIORITY_BADGE.low;
                 return (
-                  <li key={a.ruleId} className="flex gap-3 rounded-xl border border-slate-200/80 p-3.5 bg-slate-50/60 shadow-2xs">
-                    <span className={`mt-1.5 h-3 w-3 shrink-0 rounded-full shadow-2xs ${DOT[a.severity]}`} aria-hidden />
+                  <li key={a.ruleId} className="flex gap-3.5 rounded-xl neumo-inset p-4 bg-[#EEF2EF] border border-[#DCE4DD]">
+                    <span className={`mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full shadow-xs ${DOT[a.severity]}`} aria-hidden />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-base font-semibold text-slate-900">{a.reason}</p>
-                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeStyle}`}>
+                        <p className="text-base font-bold text-[#242924]">{a.reason}</p>
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-wider ${badgeStyle}`}>
                           {a.severity}
                         </span>
                       </div>
-                      <ul className="text-xs sm:text-sm text-slate-600 mt-1.5 space-y-1">
+                      <ul className="text-xs sm:text-sm text-[#5F6962] mt-2 space-y-1 font-medium">
                         {a.evidence.map((e) => <li key={e} className="flex items-center gap-1.5">• {e}</li>)}
                       </ul>
                     </div>
@@ -99,48 +113,53 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
         </section>
 
         {/* Attendance by week */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-            <Calendar className="h-4 w-4 text-teal-700" /> Attendance by week
+        <section className="neumo-card p-6 space-y-4">
+          <h2 className="text-xs font-extrabold text-[#5F6962] uppercase tracking-wider flex items-center gap-1.5">
+            <Calendar className="h-4 w-4 text-[#527A5B]" /> Attendance by Week
           </h2>
-          <div className="flex items-center justify-between gap-3 py-1 bg-slate-50/70 p-3.5 rounded-xl border border-slate-100">
+          <div className="flex items-center justify-between gap-3 neumo-inset p-4 bg-[#EEF2EF]">
             <Sparkline values={weeklyAttendance} label="Weekly attendance percentage" />
-            <span className="text-sm font-bold text-slate-900 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-2xs">
+            <span className="text-sm font-extrabold text-[#527A5B] bg-[#E5F3E8] px-3.5 py-1.5 rounded-lg border border-[#DCE4DD] shadow-2xs shrink-0">
               {weeklyAttendance.length ? `${weeklyAttendance[weeklyAttendance.length - 1]}% latest` : "No data"}
             </span>
           </div>
         </section>
 
         {/* Internal marks */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-            <BookOpen className="h-4 w-4 text-teal-700" /> Internal marks (out of 50)
+        <section className="neumo-card p-6 space-y-4">
+          <h2 className="text-xs font-extrabold text-[#5F6962] uppercase tracking-wider flex items-center gap-1.5">
+            <BookOpen className="h-4 w-4 text-[#527A5B]" /> Internal Marks (Out of 50)
           </h2>
-          <ul className="divide-y divide-slate-100 text-sm text-slate-900">
-            {[...marksBySubject.entries()].map(([subject, scores]) => (
-              <li key={subject} className="flex justify-between items-center py-2.5">
-                <span className="font-semibold text-slate-800">{subject}</span>
-                <span className="font-mono font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">{scores.join(", ")}</span>
-              </li>
-            ))}
-          </ul>
+          {student.marks.length === 0 ? (
+            <p className="text-sm text-[#5F6962] font-semibold">No internal marks recorded.</p>
+          ) : (
+            <ul className="divide-y divide-[#DCE4DD] text-sm">
+              {[...marksBySubject.entries()].map(([subject, scores]) => (
+                <li key={subject} className="flex justify-between items-center py-3">
+                  <span className="font-bold text-[#242924]">{subject}</span>
+                  <span className="font-mono font-bold text-[#527A5B] bg-[#EEF2EF] px-3 py-1 rounded-lg border border-[#DCE4DD] shadow-2xs">{scores.join(", ")}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {/* Open actions */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-            <Clock className="h-4 w-4 text-amber-600" /> Open actions
+        <section className="neumo-card p-6 space-y-4">
+          <h2 className="text-xs font-extrabold text-[#5F6962] uppercase tracking-wider flex items-center gap-1.5">
+            <Clock className="h-4 w-4 text-amber-600" /> Open Action Items ({student.followUps.length})
           </h2>
           {student.followUps.length === 0 ? (
-            <p className="py-2 text-sm text-slate-600 font-medium">None pending.</p>
+            <p className="text-sm text-[#5F6962] font-semibold">None pending.</p>
           ) : (
-            <ul className="space-y-2.5">
+            <ul className="space-y-3">
               {student.followUps.map((f) => (
-                <li key={f.id} className="rounded-xl border border-amber-200 bg-amber-50/40 p-3.5 shadow-2xs">
-                  <p className="font-semibold text-slate-900 text-sm">{f.action}</p>
-                  <p className="text-xs text-amber-800 mt-1 font-medium flex items-center gap-1">
+                <li key={f.id} className="rounded-xl neumo-inset border border-amber-200 bg-gradient-to-br from-[#EEF2EF] to-amber-50/50 p-4 shadow-2xs">
+                  <p className="font-bold text-[#242924] text-sm sm:text-base">{f.action}</p>
+                  <p className="text-xs text-amber-800 mt-1.5 font-bold flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" /> Due {formatDate(f.dueDate)}
                   </p>
+                  <CompleteFollowUpButton id={f.id} action={f.action} />
                 </li>
               ))}
             </ul>
@@ -148,23 +167,23 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
         </section>
 
         {/* Previous conversations */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-            <MessageSquare className="h-4 w-4 text-teal-700" /> Previous conversations
+        <section className="neumo-card p-6 space-y-4">
+          <h2 className="text-xs font-extrabold text-[#5F6962] uppercase tracking-wider flex items-center gap-1.5">
+            <MessageSquare className="h-4 w-4 text-[#527A5B]" /> Previous Conversations ({student.meetings.length})
           </h2>
           {student.meetings.length === 0 ? (
-            <p className="py-2 text-sm text-slate-600 font-medium">None recorded yet.</p>
+            <p className="text-sm text-[#5F6962] font-semibold">None recorded yet.</p>
           ) : (
             <ul className="space-y-3">
               {student.meetings.map((m) => (
-                <li key={m.id} className="text-sm text-slate-900 rounded-xl bg-slate-50/70 p-3.5 border border-slate-100 space-y-1.5">
+                <li key={m.id} className="text-sm text-[#242924] rounded-xl neumo-inset p-4 border border-[#DCE4DD] space-y-2 bg-[#EEF2EF]">
                   <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="bg-teal-50 text-teal-800 border-teal-200 font-semibold text-xs">
+                    <Badge variant="secondary" className="bg-[#E5F3E8] text-[#527A5B] border-[#DCE4DD] font-bold text-xs">
                       {formatDate(m.meetingDate)}
                     </Badge>
-                    <span className="text-xs text-slate-400 capitalize font-medium">{m.language}</span>
+                    <span className="text-xs text-[#5F6962] capitalize font-semibold">Language: {m.language}</span>
                   </div>
-                  <p className="text-slate-700 leading-relaxed font-normal">{m.summary}</p>
+                  <p className="text-[#242924] leading-relaxed font-medium">{m.summary}</p>
                 </li>
               ))}
             </ul>
@@ -172,12 +191,13 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
         </section>
 
         {/* Log this conversation */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-teal-700" /> Log this conversation
+        <section className="neumo-card p-6 space-y-4 border-[#527A5B]/30 bg-gradient-to-br from-[#FFFFFF] via-[#E5F3E8]/50 to-[#FFFFFF]">
+          <h2 className="text-lg font-extrabold text-[#242924] flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-[#527A5B]" /> Log This Mentoring Session
           </h2>
-          <LogForm studentId={student.id} />
+          <LogForm studentId={student.id} speechDemo={process.env.TRANSCRIBER === "mock"} extractionDemo={process.env.EXTRACTOR === "mock"} />
         </section>
+        <RegisterDownload studentId={student.id} />
       </div>
     </main>
   );

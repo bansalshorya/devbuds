@@ -6,5 +6,5 @@ export async function GET() {
   if (!user || user.role !== "HOD") {
     return Response.json({ error: "Not allowed" }, { status: 403 });
   }
-  return Response.json(await getCoverage(user.departmentId));
+  return Response.json(await getCoverage(user.departmentId), { headers: { "Cache-Control": "private, no-store" } });
 }

@@ -1,0 +1,360 @@
+diff --git a/samples/attendance.csv b/samples/attendance.csv
+new file mode 100644
+index 0000000..dde0b58
+--- /dev/null
++++ b/samples/attendance.csv
+@@ -0,0 +1,4 @@
++rollNo,subject,weekStart,attended,total
++21CS002,DBMS,2026-10-26,4,10
++21CS002,Maths,2026-10-26,5,10
++21CS006,Networks,2026-10-26,9,10
+diff --git a/samples/bad.csv b/samples/bad.csv
+new file mode 100644
+index 0000000..1537f75
+--- /dev/null
++++ b/samples/bad.csv
+@@ -0,0 +1,4 @@
++rollNo,subject,weekStart,attended,total
++21CS002,DBMS,2026-02-31,4,10
++21CS002,Maths,2026-10-26,12,10
++21CS006,Networks,26/10/2026,9,10
+diff --git a/samples/lms.csv b/samples/lms.csv
+new file mode 100644
+index 0000000..006f456
+--- /dev/null
++++ b/samples/lms.csv
+@@ -0,0 +1,3 @@
++rollNo,activityOn,events
++21CS003,2026-10-27,6
++21CS008,2026-10-28,3
+diff --git a/samples/marks.csv b/samples/marks.csv
+new file mode 100644
+index 0000000..76a6019
+--- /dev/null
++++ b/samples/marks.csv
+@@ -0,0 +1,4 @@
++rollNo,subject,assessment,assessedOn,score,maxScore
++21CS002,DBMS,CAT 3,2026-10-22,21,50
++21CS002,Maths,CAT 3,2026-10-22,24,50
++21CS005,Networks,CAT 4,2026-10-27,33,50
+diff --git a/src/app/api/mentor/import/route.ts b/src/app/api/mentor/import/route.ts
+new file mode 100644
+index 0000000..39ebbaf
+--- /dev/null
++++ b/src/app/api/mentor/import/route.ts
+@@ -0,0 +1,88 @@
++import { prisma } from "@/server/db/client";
++import { getCurrentUser } from "@/server/auth/session";
++import { sameOrigin } from "@/server/auth/origin";
++import { IMPORT_TYPES, parseCsv, type ImportType } from "@/server/import/csv";
++
++const MAX_BYTES = 2 * 1024 * 1024;
++
++export async function POST(req: Request) {
++  const user = await getCurrentUser();
++  if (!user || user.role !== "MENTOR") {
++    return Response.json({ errors: ["Not allowed"] }, { status: 403 });
++  }
++  if (!sameOrigin(req)) {
++    return Response.json({ errors: ["Not allowed"] }, { status: 403 });
++  }
++
++  const form = await req.formData().catch(() => null);
++  const type = form?.get("type");
++  const file = form?.get("file");
++  if (typeof type !== "string" || !IMPORT_TYPES.includes(type as ImportType) || !(file instanceof File)) {
++    return Response.json({ errors: ["Choose a data type and a CSV file"] }, { status: 400 });
++  }
++  if (file.size > MAX_BYTES) {
++    return Response.json({ errors: ["File is too large (max 2 MB)"] }, { status: 400 });
++  }
++
++  const parsed = parseCsv(type as ImportType, await file.text());
++  if (!parsed.ok) return Response.json({ errors: parsed.errors }, { status: 400 });
++
++  // A mentor can only update their own mentees (matched by roll number).
++  const mentees = await prisma.mentorAssignment.findMany({
++    where: { mentorId: user.id },
++    select: { student: { select: { id: true, rollNo: true } } },
++  });
++  const idByRoll = new Map(mentees.map((m) => [m.student.rollNo, m.student.id]));
++  const unknown = [...new Set(parsed.rows.map((r) => r.rollNo).filter((r) => !idByRoll.has(r)))];
++  if (unknown.length) {
++    return Response.json(
++      { errors: [`Roll numbers not in your mentee list: ${unknown.slice(0, 10).join(", ")}`] },
++      { status: 400 }
++    );
++  }
++
++  // All rows are saved together or not at all. Existing entries are updated, new ones added.
++  switch (parsed.type) {
++    case "attendance":
++      await prisma.$transaction(
++        parsed.rows.map((r) => {
++          const studentId = idByRoll.get(r.rollNo)!;
++          const weekStart = new Date(r.weekStart);
++          return prisma.attendanceRecord.upsert({
++            where: { studentId_subject_weekStart: { studentId, subject: r.subject, weekStart } },
++            update: { attended: r.attended, total: r.total },
++            create: { studentId, subject: r.subject, weekStart, attended: r.attended, total: r.total },
++          });
++        })
++      );
++      break;
++    case "marks":
++      await prisma.$transaction(
++        parsed.rows.map((r) => {
++          const studentId = idByRoll.get(r.rollNo)!;
++          const assessedOn = new Date(r.assessedOn);
++          return prisma.internalMark.upsert({
++            where: { studentId_subject_assessment: { studentId, subject: r.subject, assessment: r.assessment } },
++            update: { assessedOn, score: r.score, maxScore: r.maxScore },
++            create: { studentId, subject: r.subject, assessment: r.assessment, assessedOn, score: r.score, maxScore: r.maxScore },
++          });
++        })
++      );
++      break;
++    case "lms":
++      await prisma.$transaction(
++        parsed.rows.map((r) => {
++          const studentId = idByRoll.get(r.rollNo)!;
++          const activityOn = new Date(r.activityOn);
++          return prisma.lmsActivity.upsert({
++            where: { studentId_activityOn: { studentId, activityOn } },
++            update: { events: r.events },
++            create: { studentId, activityOn, events: r.events },
++          });
++        })
++      );
++      break;
++  }
++
++  return Response.json({ ok: true, imported: parsed.rows.length });
++}
+diff --git a/src/app/mentor/page.tsx b/src/app/mentor/page.tsx
+index 1924318..82b2438 100644
+--- a/src/app/mentor/page.tsx
++++ b/src/app/mentor/page.tsx
+@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/server/auth/session";
+ import { getMentorStudents, type StudentRow } from "@/server/alerts/attention";
+ import { formatDate } from "@/lib/dates";
+ import { LogoutButton } from "@/components/LogoutButton";
++import { CsvImport } from "@/components/CsvImport";
+ import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, Sparkles } from "lucide-react";
+ import { Badge } from "@/components/ui/badge";
+ 
+@@ -113,6 +114,11 @@ async function MentorHome({
+       </header>
+ 
+       <main className="mx-auto max-w-md sm:max-w-xl pb-6">
++        {tab === "mentees" && (
++          <div className="px-4 pt-5">
++            <CsvImport />
++          </div>
++        )}
+         {tab === "week" && (
+           <>
+             {/* Quick Summary Counts Bar */}
+diff --git a/src/components/CsvImport.tsx b/src/components/CsvImport.tsx
+new file mode 100644
+index 0000000..66e7a63
+--- /dev/null
++++ b/src/components/CsvImport.tsx
+@@ -0,0 +1,94 @@
++"use client";
++
++import { useState, type FormEvent } from "react";
++import { useRouter } from "next/navigation";
++import { Upload, CheckCircle2, AlertCircle } from "lucide-react";
++
++const TYPES = {
++  attendance: { label: "Attendance", cols: "rollNo, subject, weekStart, attended, total" },
++  marks: { label: "Internal marks", cols: "rollNo, subject, assessment, assessedOn, score, maxScore" },
++  lms: { label: "LMS activity", cols: "rollNo, activityOn, events" },
++} as const;
++type Kind = keyof typeof TYPES;
++
++export function CsvImport() {
++  const router = useRouter();
++  const [type, setType] = useState<Kind>("attendance");
++  const [file, setFile] = useState<File | null>(null);
++  const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
++  const [message, setMessage] = useState<string[]>([]);
++
++  async function onSubmit(e: FormEvent) {
++    e.preventDefault();
++    if (!file) return;
++    setStatus("saving");
++    setMessage([]);
++    const body = new FormData();
++    body.append("type", type);
++    body.append("file", file);
++    try {
++      const res = await fetch("/api/mentor/import", { method: "POST", body });
++      const data = await res.json().catch(() => ({}));
++      if (!res.ok) {
++        setStatus("error");
++        setMessage(data.errors ?? ["Import failed. Please try again."]);
++        return;
++      }
++      setStatus("done");
++      setMessage([`${data.imported} rows imported`]);
++      setFile(null);
++      router.refresh(); // re-run the alert rules on the new data
++    } catch {
++      setStatus("error");
++      setMessage(["Network problem. Please try again."]);
++    }
++  }
++
++  return (
++    <form onSubmit={onSubmit} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
++      <div className="flex items-center gap-2">
++        <Upload className="h-4 w-4 text-teal-700" />
++        <h2 className="text-sm font-bold text-slate-900">Update data from CSV</h2>
++      </div>
++
++      <select
++        value={type}
++        onChange={(e) => setType(e.target.value as Kind)}
++        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-3 text-base"
++      >
++        {(Object.keys(TYPES) as Kind[]).map((k) => (
++          <option key={k} value={k}>{TYPES[k].label}</option>
++        ))}
++      </select>
++      <p className="text-xs text-slate-500">Columns: {TYPES[type].cols}. Dates as YYYY-MM-DD. Existing rows are updated.</p>
++
++      <input
++        type="file"
++        accept=".csv,text/csv"
++        onChange={(e) => { setFile(e.target.files?.[0] ?? null); setStatus("idle"); setMessage([]); }}
++        className="block w-full text-sm file:mr-3 file:rounded-xl file:border-0 file:bg-teal-50 file:px-4 file:py-3 file:font-semibold file:text-teal-700"
++      />
++
++      <button
++        type="submit"
++        disabled={!file || status === "saving"}
++        className="h-12 w-full rounded-xl bg-teal-700 text-base font-semibold text-white disabled:opacity-50"
++      >
++        {status === "saving" ? "Importing..." : "Import"}
++      </button>
++
++      {status === "done" && (
++        <p className="flex items-center gap-2 text-sm font-medium text-emerald-700">
++          <CheckCircle2 className="h-4 w-4" /> {message[0]}
++        </p>
++      )}
++      {status === "error" && (
++        <ul className="space-y-1 text-sm text-red-700">
++          {message.map((m, i) => (
++            <li key={i} className="flex gap-2"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {m}</li>
++          ))}
++        </ul>
++      )}
++    </form>
++  );
++}
+diff --git a/src/server/import/csv.ts b/src/server/import/csv.ts
+new file mode 100644
+index 0000000..17cc8df
+--- /dev/null
++++ b/src/server/import/csv.ts
+@@ -0,0 +1,97 @@
++import Papa from "papaparse";
++import { z } from "zod";
++
++export const IMPORT_TYPES = ["attendance", "marks", "lms"] as const;
++export type ImportType = (typeof IMPORT_TYPES)[number];
++
++export const MAX_ROWS = 2000;
++
++// Columns each CSV must have (extra columns are ignored).
++export const COLUMNS: Record<ImportType, string[]> = {
++  attendance: ["rollNo", "subject", "weekStart", "attended", "total"],
++  marks: ["rollNo", "subject", "assessment", "assessedOn", "score", "maxScore"],
++  lms: ["rollNo", "activityOn", "events"],
++};
++
++const text = z.string().trim().min(1, "is required");
++
++// YYYY-MM-DD and a real calendar day (rejects 2026-02-31).
++const date = z
++  .string()
++  .trim()
++  .regex(/^\d{4}-\d{2}-\d{2}$/, "must be YYYY-MM-DD")
++  .refine((v) => {
++    const d = new Date(v);
++    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
++  }, "is not a real date");
++
++const int = z
++  .string()
++  .trim()
++  .min(1, "is required")
++  .transform(Number)
++  .pipe(z.number().int("must be a whole number").min(0, "cannot be negative"));
++
++const num = z
++  .string()
++  .trim()
++  .min(1, "is required")
++  .transform(Number)
++  .pipe(z.number("must be a number").min(0, "cannot be negative"));
++
++const attendanceRow = z
++  .object({ rollNo: text, subject: text, weekStart: date, attended: int, total: int })
++  .refine((r) => r.attended <= r.total, { message: "is more than total", path: ["attended"] });
++
++const marksRow = z
++  .object({ rollNo: text, subject: text, assessment: text, assessedOn: date, score: num, maxScore: num })
++  .refine((r) => r.maxScore > 0, { message: "must be above 0", path: ["maxScore"] })
++  .refine((r) => r.score <= r.maxScore, { message: "is more than maxScore", path: ["score"] });
++
++const lmsRow = z.object({ rollNo: text, activityOn: date, events: int });
++
++export type AttendanceRow = z.infer<typeof attendanceRow>;
++export type MarksRow = z.infer<typeof marksRow>;
++export type LmsRow = z.infer<typeof lmsRow>;
++
++export type ParsedCsv =
++  | { ok: false; errors: string[] }
++  | { ok: true; type: "attendance"; rows: AttendanceRow[] }
++  | { ok: true; type: "marks"; rows: MarksRow[] }
++  | { ok: true; type: "lms"; rows: LmsRow[] };
++
++export function parseCsv(type: ImportType, raw: string): ParsedCsv {
++  const result = Papa.parse<Record<string, string>>(raw.replace(/^\uFEFF/, ""), {
++    header: true,
++    skipEmptyLines: "greedy",
++    transformHeader: (h) => h.trim(),
++  });
++
++  const headers = result.meta.fields ?? [];
++  const missing = COLUMNS[type].filter((c) => !headers.includes(c));
++  if (missing.length) {
++    return { ok: false, errors: [`Missing column(s): ${missing.join(", ")}. Expected: ${COLUMNS[type].join(", ")}`] };
++  }
++  if (result.data.length === 0) return { ok: false, errors: ["The file has no data rows"] };
++  if (result.data.length > MAX_ROWS) {
++    return { ok: false, errors: [`Too many rows (max ${MAX_ROWS} per file)`] };
++  }
++
++  const schema = type === "attendance" ? attendanceRow : type === "marks" ? marksRow : lmsRow;
++  const errors: string[] = [];
++  const rows: unknown[] = [];
++
++  result.data.forEach((record, i) => {
++    const r = schema.safeParse(record);
++    if (r.success) {
++      rows.push(r.data);
++    } else if (errors.length < 10) {
++      const issue = r.error.issues[0];
++      const field = issue.path.length ? `${String(issue.path[0])} ` : "";
++      errors.push(`Row ${i + 2}: ${field}${issue.message}`); // row 1 is the header
++    }
++  });
++
++  if (errors.length) return { ok: false, errors };
++  return { ok: true, type, rows } as ParsedCsv;
++}
