@@ -5,7 +5,9 @@ import { getCurrentUser } from "@/server/auth/session";
 import { formatDate } from "@/lib/dates";
 import { LogoutButton } from "@/components/LogoutButton";
 import { CompleteFollowUpButton } from "@/components/CompleteFollowUpButton";
-import { GraduationCap, Calendar, Clock, CheckCircle2, MessageSquare, Sparkles } from "lucide-react";
+import { FollowUpReminders, CalendarReminderLink } from "@/components/FollowUpReminders";
+import { StudentProgressTimeline } from "@/components/StudentProgressTimeline";
+import { GraduationCap, Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -31,7 +33,7 @@ async function StudentHome() {
 
   const meetings = await prisma.meeting.findMany({
     where: { studentId: user.student.id },
-    orderBy: { meetingDate: "desc" },
+    orderBy: [{ meetingDate: "desc" }, { createdAt: "desc" }],
     include: { followUps: { orderBy: { dueDate: "asc" } } },
   });
   const open = meetings.flatMap((m) => m.followUps).filter((f) => !f.completedAt);
@@ -62,6 +64,7 @@ async function StudentHome() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 sm:px-8 pt-8 space-y-8">
+        <FollowUpReminders actions={open} />
         {/* Open Action Items */}
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-2">
@@ -96,6 +99,7 @@ async function StudentHome() {
                       <Calendar className="h-3.5 w-3.5 shrink-0" /> Due by {formatDate(f.dueDate)}
                     </p>
                     <CompleteFollowUpButton id={f.id} action={f.action} />
+                    <CalendarReminderLink id={f.id} />
                   </div>
                 </li>
               ))}
@@ -105,40 +109,7 @@ async function StudentHome() {
 
         <Separator className="my-6 border-[#DCE4DD]" />
 
-        {/* Past Conversations */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-base sm:text-lg font-extrabold text-[#242924] flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-[#527A5B] shrink-0" />
-              Mentoring History
-            </h2>
-            <span className="text-xs text-[#5F6962] font-bold">{meetings.length} recorded sessions</span>
-          </div>
-
-          {meetings.length === 0 ? (
-            <div className="neumo-card p-8 text-center text-[#5F6962] font-semibold">
-              No mentoring sessions recorded yet.
-            </div>
-          ) : (
-            <ul className="space-y-4">
-              {meetings.map((m) => (
-                <li
-                  key={m.id}
-                  className="neumo-card p-5 space-y-3 bg-[#FFFFFF] hover:bg-[#F0F5F1] transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <Badge variant="secondary" className="gap-1.5 bg-[#EEF2EF] text-[#527A5B] border-[#DCE4DD] text-xs font-bold">
-                      <Calendar className="h-3.5 w-3.5 shrink-0" />
-                      {formatDate(m.meetingDate)}
-                    </Badge>
-                    <span className="text-xs text-[#5F6962] capitalize font-semibold">Language: {m.language}</span>
-                  </div>
-                  <p className="text-sm sm:text-base text-[#242924] leading-relaxed break-words font-medium">{m.summary}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <StudentProgressTimeline meetings={meetings} />
       </main>
     </div>
   );

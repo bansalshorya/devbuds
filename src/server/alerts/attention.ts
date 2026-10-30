@@ -57,7 +57,7 @@ export async function getStudentForMentor(mentorId: string, studentId: string) {
           attendance: true,
           marks: { orderBy: { assessedOn: "asc" } },
           lmsActivity: true,
-          meetings: { orderBy: { meetingDate: "desc" } },
+          meetings: { orderBy: [{ meetingDate: "desc" }, { createdAt: "desc" }], include: { followUps: { orderBy: { dueDate: "asc" } } } },
           followUps: { where: { completedAt: null }, orderBy: { dueDate: "asc" } },
         },
       },

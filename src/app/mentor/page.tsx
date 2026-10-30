@@ -7,9 +7,9 @@ import { formatDate } from "@/lib/dates";
 import { LogoutButton } from "@/components/LogoutButton";
 import { CompleteFollowUpButton } from "@/components/CompleteFollowUpButton";
 import { RegisterDownload } from "@/components/RegisterDownload";
-import { Users, AlertTriangle, CheckCircle2, ChevronRight, Calendar, UserCheck, ShieldAlert, X, Filter } from "lucide-react";
+import { FollowUpReminders } from "@/components/FollowUpReminders";
+import { Users, CheckCircle2, ChevronRight, Calendar, UserCheck, ShieldAlert, X, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MentorPage({
   searchParams,
@@ -183,6 +183,7 @@ async function MentorHome({
       </header>
 
       <main className="mx-auto max-w-md sm:max-w-2xl px-4 sm:px-6 pt-6 space-y-6">
+        <FollowUpReminders actions={allFollowUps} />
         {tab === "week" && (
           <>
             {/* Quick Summary Cards (Interactive Filters) */}

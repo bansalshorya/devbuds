@@ -271,6 +271,14 @@ See [implementation status](docs/implementation-status.md) for external prerequi
 - The follow-up completion API allows mentors and students to complete authorized actions. Completion is timestamped and retry-safe. Mark complete buttons are now available on the original mentor and student screens with matching styles, saving/error states and retry support.
 - The register API generates Excel or Word files, optionally filtered by an inclusive date range. Only that mentor's confirmed meetings for currently assigned mentees are exported. Each action includes its due date and completion status. The added download controls were reverted. Files use a general template; matching a supplied college's exact format remains pending receipt of its sample. Original department summary CSVs are a separate feature.
 
+### Follow-up reminders, progress, and meeting preparation
+
+- Mentor dashboards, student profiles, and student portals show in-app reminders for unfinished actions that are overdue or due within seven days. Reminders refresh every minute while the page is visible and when returning to the page. Completing an action removes its reminder.
+- **Add to calendar** downloads a private `.ics` file for an open action. Import it into a calendar app to receive alerts one day before and at 9 AM India time on its due date. Enable notifications in that calendar app. Past deadlines do not produce future calendar alerts. Downloads are snapshots: later completion or changes in DevBuds do not update imported events, which should be removed manually when no longer needed.
+- Student progress timelines on the mentor's student profile and the student portal show saved conversations, associated commitments, current completion status, and dated completion milestones. Timelines include completed actions rather than hiding historical progress.
+- **Prepare for this meeting** on the mentor's student profile brings together the last saved discussion, unfinished commitments, current attention alerts, and the latest recorded weekly attendance trend. Preparation uses existing records and does not generate new claims with AI.
+- Recorded and uploaded audio is checked locally before transcription for silence, low volume, clipping, and clips shorter than one second. Warnings are signal-level heuristics, not a guarantee of speech clarity or transcription accuracy. You can listen and choose **Transcribe anyway**. If the browser cannot decode a format for analysis, transcription remains available. These checks do not send audio to a service.
+
 ### AI configuration
 
 The `.env.example` defaults to explicitly labelled demo providers. Demo transcription inserts a sample rather than recognizing audio; demo extraction copies the note and leaves actions for manual entry. These providers run only with `DEMO_MODE=true`.

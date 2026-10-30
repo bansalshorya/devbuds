@@ -8,9 +8,11 @@ import { Sparkline } from "@/components/Sparkline";
 import { LogForm } from "@/components/LogForm";
 import { CompleteFollowUpButton } from "@/components/CompleteFollowUpButton";
 import { RegisterDownload } from "@/components/RegisterDownload";
+import { MeetingPreparationCard } from "@/components/MeetingPreparationCard";
+import { StudentProgressTimeline } from "@/components/StudentProgressTimeline";
+import { FollowUpReminders, CalendarReminderLink } from "@/components/FollowUpReminders";
 import { ArrowLeft, Clock, Calendar, MessageSquare, BookOpen, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   return (
@@ -75,6 +77,9 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
             Roll Number: <span className="font-mono font-bold text-[#242924]">{student.rollNo}</span> · Department ID: <span className="font-mono text-[#5F6962]">{student.departmentId}</span>
           </p>
         </div>
+
+        <MeetingPreparationCard meetings={student.meetings} actions={student.followUps} concerns={alerts.map((alert) => alert.reason)} weeklyAttendance={weeklyAttendance} />
+        <FollowUpReminders actions={student.followUps} />
 
         {/* Why this student needs attention */}
         <section className="neumo-card p-6 space-y-4">
@@ -160,38 +165,17 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
                     <Calendar className="h-3.5 w-3.5" /> Due {formatDate(f.dueDate)}
                   </p>
                   <CompleteFollowUpButton id={f.id} action={f.action} />
+                  <CalendarReminderLink id={f.id} />
                 </li>
               ))}
             </ul>
           )}
         </section>
 
-        {/* Previous conversations */}
-        <section className="neumo-card p-6 space-y-4">
-          <h2 className="text-xs font-extrabold text-[#5F6962] uppercase tracking-wider flex items-center gap-1.5">
-            <MessageSquare className="h-4 w-4 text-[#527A5B]" /> Previous Conversations ({student.meetings.length})
-          </h2>
-          {student.meetings.length === 0 ? (
-            <p className="text-sm text-[#5F6962] font-semibold">None recorded yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {student.meetings.map((m) => (
-                <li key={m.id} className="text-sm text-[#242924] rounded-xl neumo-inset p-4 border border-[#DCE4DD] space-y-2 bg-[#EEF2EF]">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="bg-[#E5F3E8] text-[#527A5B] border-[#DCE4DD] font-bold text-xs">
-                      {formatDate(m.meetingDate)}
-                    </Badge>
-                    <span className="text-xs text-[#5F6962] capitalize font-semibold">Language: {m.language}</span>
-                  </div>
-                  <p className="text-[#242924] leading-relaxed font-medium">{m.summary}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <StudentProgressTimeline meetings={student.meetings} />
 
         {/* Log this conversation */}
-        <section className="neumo-card p-6 space-y-4 border-[#527A5B]/30 bg-gradient-to-br from-[#FFFFFF] via-[#E5F3E8]/50 to-[#FFFFFF]">
+        <section id="log-conversation" className="scroll-mt-24 neumo-card p-6 space-y-4 border-[#527A5B]/30 bg-gradient-to-br from-[#FFFFFF] via-[#E5F3E8]/50 to-[#FFFFFF]">
           <h2 className="text-lg font-extrabold text-[#242924] flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-[#527A5B]" /> Log This Mentoring Session
           </h2>
