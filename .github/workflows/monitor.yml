@@ -1,0 +1,49 @@
+name: Deployment monitor
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: devbuds-deployment-monitor
+  cancel-in-progress: false
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check deployment
+        id: probe
+        continue-on-error: true
+        env:
+          MONITOR_URL: ${{ vars.DEVBUDS_URL || 'https://devbuds-five.vercel.app' }}
+          MONITOR_SLOW_MS: '5000'
+        run: node scripts/monitor-deployment.mjs
+      - name: Notify only on failure or recovery
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PROBE_FAILED: ${{ steps.probe.outputs.failed }}
+          PROBE_SUMMARY: ${{ steps.probe.outputs.summary }}
+          PROBE_OUTCOME: ${{ steps.probe.outcome }}
+        with:
+          script: |
+            const title = '[DevBuds monitor] Deployment needs attention';
+            const { owner, repo } = context.repo;
+            const issues = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
+            const existing = issues.find(i => !i.pull_request && i.title === title && i.user?.type === 'Bot');
+            const failed = process.env.PROBE_FAILED === 'true' || process.env.PROBE_OUTCOME === 'failure';
+            const summary = process.env.PROBE_SUMMARY || 'The monitor did not finish. Review this workflow run.';
+            const link = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            if (failed && !existing) {
+              await github.rest.issues.create({ owner, repo, title, body: `${summary}\n\n[Monitor run](${link})\n\nThis issue closes automatically after recovery. No student data or credentials are included.` });
+            } else if (!failed && existing) {
+              await github.rest.issues.createComment({ owner, repo, issue_number: existing.number, body: `Recovered: ${summary}\n\n[Monitor run](${link})` });
+              await github.rest.issues.update({ owner, repo, issue_number: existing.number, state: 'closed' });
+            }

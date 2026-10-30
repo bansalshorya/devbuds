@@ -25,6 +25,8 @@ A faculty mentor opens one screen, sees which students need a conversation and *
 
 ## 1. The problem
 
+**New workflows:** [Automation Hub setup and features](docs/automations.md) covers weekly agendas and digests, student check-ins, scheduled CSV sync, missed-meeting notices, monthly registers, data-quality reports, escalation, and external deployment monitoring. Production activation requires the automation migration, a server-side scheduler secret, and redeployment.
+
 Most colleges assign each faculty member about 20 mentees and expect regular meetings, partly because accreditation reviews ask for evidence of mentoring. In practice:
 
 - The signals that a student needs help (attendance, internal assessment marks, LMS activity) sit in separate systems, and nobody combines them. Mentors find out at the end of the semester, when the student is detained or has a backlog.

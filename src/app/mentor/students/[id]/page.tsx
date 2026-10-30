@@ -78,7 +78,7 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
           </p>
         </div>
 
-        <MeetingPreparationCard meetings={student.meetings} actions={student.followUps} concerns={alerts.map((alert) => alert.reason)} weeklyAttendance={weeklyAttendance} />
+        <MeetingPreparationCard meetings={student.meetings} actions={student.followUps} concerns={alerts.map((alert) => alert.reason)} weeklyAttendance={weeklyAttendance} checkIn={data.checkIn} />
         <FollowUpReminders actions={student.followUps} />
 
         {/* Why this student needs attention */}

@@ -167,3 +167,78 @@ model FollowUp {
   @@index([studentId])
   @@index([mentorId])
 }
+
+model AutomationSettings {
+  departmentId      String @id
+  enabled           Boolean @default(true)
+  meetingGapDays    Int @default(21)
+  escalationDays    Int @default(7)
+  staleDataDays     Int @default(14)
+  updatedAt         DateTime @updatedAt
+}
+
+model AutomationNotice {
+  id           String @id @default(cuid())
+  key          String @unique
+  departmentId String
+  userId       String
+  studentId    String?
+  kind         String
+  title        String
+  body         Json
+  createdAt    DateTime @default(now())
+  readAt       DateTime?
+  resolvedAt   DateTime?
+
+  @@index([userId, createdAt])
+  @@index([departmentId, kind])
+}
+
+model StudentCheckIn {
+  id          String @id @default(cuid())
+  studentId   String
+  weekStart   DateTime @db.Date
+  progress    String @default("")
+  support     String @default("")
+  requestedAt DateTime @default(now())
+  respondedAt DateTime?
+
+  @@unique([studentId, weekStart])
+  @@index([studentId, requestedAt])
+}
+
+model AutomationJob {
+  id           String @id @default(cuid())
+  key          String @unique
+  departmentId String
+  userId       String
+  kind         String
+  status       String @default("pending")
+  dueAt        DateTime
+  input        Json
+  result       Json?
+  artifact     Bytes?
+  createdAt    DateTime @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+
+  @@index([status, dueAt])
+  @@index([userId, createdAt])
+}
+
+model AutomationLease {
+  key       String @id
+  holder    String
+  expiresAt DateTime
+}
+
+model AutomationRun {
+  id           String @id @default(cuid())
+  departmentId String
+  status       String
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+  summary      Json?
+
+  @@index([departmentId, startedAt])
+}

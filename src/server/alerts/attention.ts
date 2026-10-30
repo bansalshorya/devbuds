@@ -73,7 +73,10 @@ export async function getStudentForMentor(mentorId: string, studentId: string) {
   });
   if (!assignment) return null;
   const s = assignment.student;
-  const config = await getThresholds(mentorId);
+  const [config, checkIn] = await Promise.all([
+    getThresholds(mentorId),
+    prisma.studentCheckIn.findFirst({ where: { studentId, respondedAt: { not: null } }, orderBy: { weekStart: "desc" }, select: { progress: true, support: true, weekStart: true } }),
+  ]);
 
   const alerts = evaluateStudent({
     studentId: s.id,
@@ -97,5 +100,5 @@ export async function getStudentForMentor(mentorId: string, studentId: string) {
     .sort((a, b) => a[0] - b[0])
     .map(([, v]) => (v.t > 0 ? Math.round((v.a / v.t) * 100) : 0));
 
-  return { student: s, alerts, weeklyAttendance };
+  return { student: s, alerts, weeklyAttendance, checkIn };
 }

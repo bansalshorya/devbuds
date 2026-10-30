@@ -183,6 +183,7 @@ async function MentorHome({
       </header>
 
       <main className="mx-auto max-w-md sm:max-w-2xl px-4 sm:px-6 pt-6 space-y-6">
+        <Link href="/automations" className="flex min-h-12 items-center justify-between rounded-xl border border-[#B5C9B9] bg-[#E5F3E8] px-4 text-sm font-bold text-[#42664A]">Automation Hub <span aria-hidden>→</span></Link>
         <FollowUpReminders actions={allFollowUps} />
         {tab === "week" && (
           <>

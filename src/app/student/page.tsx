@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/server/db/client";
 import { getCurrentUser } from "@/server/auth/session";
@@ -65,6 +66,7 @@ async function StudentHome() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 sm:px-8 pt-8 space-y-8">
+        <Link href="/automations" className="flex min-h-12 items-center justify-between rounded-xl border border-[#B5C9B9] bg-[#E5F3E8] px-4 text-sm font-bold text-[#42664A]">Weekly check-in &amp; Automation Hub <span aria-hidden>→</span></Link>
         <FollowUpReminders actions={open} />
         {/* Open Action Items */}
         <section className="space-y-4">

@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:integration": "tsx scripts/verify-workflow.ts",
+    "test:automations": "tsx scripts/verify-automations.ts",
+    "test:monitor": "node scripts/verify-monitor.mjs",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",

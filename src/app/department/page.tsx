@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/server/auth/session";
 import { getCoverage } from "@/server/db/coverage";
@@ -63,6 +64,7 @@ async function Coverage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 sm:px-8 pt-8 space-y-8">
+        <Link href="/automations" className="flex min-h-12 items-center justify-between rounded-xl border border-[#B5C9B9] bg-[#E5F3E8] px-4 text-sm font-bold text-[#42664A]">Automation Hub · scheduling, data checks &amp; monitoring <span aria-hidden>→</span></Link>
         {/* Banner with period and privacy note */}
         <Card className="p-6 bg-white shadow-xs rounded-2xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
