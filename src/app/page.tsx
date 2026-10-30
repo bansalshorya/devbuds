@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/server/auth/session";
 import { homeFor } from "@/lib/roles";
+import { PublicLandingPage } from "@/components/PublicLandingPage";
 
 export default function Home() {
   return (
@@ -13,5 +14,8 @@ export default function Home() {
 
 async function Redirector() {
   const user = await getCurrentUser();
-  return redirect(user ? homeFor(user.role) : "/login");
+  if (user) {
+    return redirect(homeFor(user.role));
+  }
+  return <PublicLandingPage />;
 }
