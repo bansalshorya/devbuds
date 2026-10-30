@@ -15,15 +15,22 @@ export type StudentRow = {
 
 // Only students assigned to this mentor are ever loaded.
 export async function getMentorStudents(mentorId: string): Promise<StudentRow[]> {
-  const config = await getThresholds(mentorId);
-  const assignments = await prisma.mentorAssignment.findMany({
+  const [config, assignments] = await Promise.all([getThresholds(mentorId), prisma.mentorAssignment.findMany({
+    relationLoadStrategy: "join",
     where: { mentorId },
     include: {
       student: {
-        include: { user: true, attendance: true, marks: true, lmsActivity: true, meetings: true, followUps: true },
+        select: {
+          id: true, rollNo: true, user: { select: { name: true } },
+          attendance: { select: { subject: true, weekStart: true, attended: true, total: true } },
+          marks: { select: { subject: true, assessment: true, assessedOn: true, score: true, maxScore: true } },
+          lmsActivity: { select: { activityOn: true } },
+          meetings: { select: { meetingDate: true } },
+          followUps: { select: { id: true, action: true, dueDate: true, completedAt: true } },
+        },
       },
     },
-  });
+  })]);
   const today = kolkataDate();
   const rows = assignments.map(({ student: s }) => {
     const alerts = evaluateStudent(
@@ -49,6 +56,7 @@ export async function getMentorStudents(mentorId: string): Promise<StudentRow[]>
 // Returns null if this student is not assigned to this mentor.
 export async function getStudentForMentor(mentorId: string, studentId: string) {
   const assignment = await prisma.mentorAssignment.findFirst({
+    relationLoadStrategy: "join",
     where: { mentorId, studentId },
     include: {
       student: {

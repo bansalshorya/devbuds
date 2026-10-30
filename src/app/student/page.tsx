@@ -32,6 +32,7 @@ async function StudentHome() {
   if (!user || user.role !== "STUDENT" || !user.student) redirect("/login");
 
   const meetings = await prisma.meeting.findMany({
+    relationLoadStrategy: "join",
     where: { studentId: user.student.id },
     orderBy: [{ meetingDate: "desc" }, { createdAt: "desc" }],
     include: { followUps: { orderBy: { dueDate: "asc" } } },

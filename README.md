@@ -258,6 +258,8 @@ npm run dev
 
 ### Remaining-step completion
 
+For deployed login failures, missing production tables, and Vercel setup, see [Vercel deployment and repair](docs/vercel-deployment.md). `npm run deploy:check` verifies required configuration and database columns without changing records.
+
 The backend provides persisted mentor/department alert settings, weekly review records, aggregate department coverage and academic trends, and performance Excel downloads. Login/AI requests have durable rate limits and important mutations write metadata-only audit events. Import supports up to 5000 rows and 3 MB per file. Mentoring register Word/Excel exports remain separate from performance reports. The frontend was subsequently reverted, so the added UI controls, browser PDF printing and PWA are not part of the current interface.
 
 See [implementation status](docs/implementation-status.md) for external prerequisites and [faculty acceptance test](docs/acceptance-test.md) for the ten-minute and real-device protocol. `npm run test:integration` verifies the running localhost app across mentor, student, HOD and cross-department boundaries with temporary fixtures. It requires demo mode and mocked AI providers.

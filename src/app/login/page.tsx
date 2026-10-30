@@ -1,40 +1,56 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { homeFor } from "@/lib/roles";
 import SmoothButton from "@/components/ui/smoothui/smooth-button";
 import { Phone, KeyRound, Sparkles, GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const inFlight = useRef(false);
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [opening, setOpening] = useState(false);
+
+  useEffect(() => {
+    const restore = (event: PageTransitionEvent) => {
+      if (event.persisted) { inFlight.current = false; setBusy(false); setOpening(false); }
+    };
+    window.addEventListener("pageshow", restore);
+    return () => window.removeEventListener("pageshow", restore);
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError("");
+    let navigating = false;
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile, otp }),
+        signal: AbortSignal.timeout(20000),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "Could not log in");
+        setError(typeof data.error === "string" ? data.error : res.status >= 500 ? "The sign-in service is unavailable. Please try again shortly." : "Could not log in. Please check your details.");
         return;
       }
-      router.push(homeFor(data.role));
-      router.refresh();
-    } catch {
-      setError("No connection. Please try again.");
+      if (!["MENTOR", "STUDENT", "HOD"].includes(data.role)) throw new Error("Invalid login response");
+      // A fresh authenticated navigation avoids a push/refresh race and duplicate dashboard requests.
+      window.location.assign(homeFor(data.role));
+      navigating = true;
+      setOpening(true);
+      return;
+    } catch (error) {
+      setError(error instanceof Error && error.name === "TimeoutError" ? "Sign-in took too long. Please try again shortly." : "Could not connect to sign-in. Please try again.");
     } finally {
-      setBusy(false);
+      if (!navigating) { inFlight.current = false; setBusy(false); }
     }
   }
 
@@ -58,6 +74,7 @@ export default function LoginPage() {
               </label>
               <Input
                 required
+                disabled={busy}
                 inputMode="numeric"
                 placeholder="e.g. 9000000001"
                 value={mobile}
@@ -73,6 +90,7 @@ export default function LoginPage() {
               </label>
               <Input
                 required
+                disabled={busy}
                 inputMode="numeric"
                 placeholder="e.g. 123456"
                 value={otp}
@@ -93,7 +111,7 @@ export default function LoginPage() {
               loading={busy}
               className="h-12 w-full rounded-xl bg-[#527A5B] hover:bg-[#42664A] text-base font-extrabold text-[#FFFFFF] shadow-md active:scale-[0.98] transition-all mt-3 cursor-pointer"
             >
-              {busy ? "Verifying..." : "Log in to portal"}
+              {opening ? "Opening your portal…" : busy ? "Verifying..." : "Log in to portal"}
             </SmoothButton>
           </form>
 

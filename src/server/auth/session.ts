@@ -39,6 +39,7 @@ export async function getCurrentUser() {
     const { payload } = await jwtVerify(token, secret());
     if (!payload.sub) return null;
     return await prisma.user.findUnique({
+      relationLoadStrategy: "join",
       where: { id: payload.sub },
       include: { student: true },
     });
